@@ -1,7 +1,5 @@
 # A speed reader for PDFs
 
-It runs entirely on your own computer. Nothing you read is uploaded anywhere.
-
 **Demo example** (the paper shown is made up; its text, authors and figures are invented):
 
 ![The reader: one word at a time on the left, the made-up demo paper's figures in a side panel](docs/screenshot.jpg)
