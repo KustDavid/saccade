@@ -1,7 +1,11 @@
 # Reading tool
 
-Speed-read research papers one word at a time (RSVP), with every figure and table one click away.
-Runs entirely on this Mac.
+Speed-read any PDF one word at a time (RSVP), with every figure, table and footnote one click away.
+Runs entirely on your Mac.
+
+It works with any PDF that has a text layer. I mainly use it for research papers, so that is what the
+conversion is tuned for: two-column layouts, numbered sections, figure and table captions, equations,
+footnotes and reference lists.
 
 ## Get it
 
@@ -10,7 +14,7 @@ git clone https://github.com/KustDavid/reading_tool.git
 ```
 
 Built and tested on a Mac. It needs [uv](https://docs.astral.sh/uv/) (`brew install uv`); everything
-else is installed automatically on the first start. No papers are included — add your own PDFs.
+else is installed automatically on the first start. No PDFs are included — add your own.
 To look around without one, open <http://127.0.0.1:8377/?mock=1> for a made-up demo paper.
 
 ## Start

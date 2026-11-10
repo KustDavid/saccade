@@ -1,1 +1,1 @@
-"""Backend for the local RSVP research-paper reader."""
+"""Backend for the local RSVP PDF reader (tuned for research papers)."""
