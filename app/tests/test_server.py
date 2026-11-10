@@ -25,7 +25,7 @@ def client(tmp_path, monkeypatch):
     from backend import server
 
     server.watcher.inbox = config.INBOX_DIR
-    with TestClient(server.app) as c:
+    with TestClient(server.app, base_url=f"http://127.0.0.1:{server.config.PORT}") as c:
         yield c
 
 
@@ -119,3 +119,14 @@ def test_inbox_picks_up_pdf(client):
     while time.time() - t0 < 30 and (config.INBOX_DIR / "again.pdf").exists():
         time.sleep(0.3)
     assert len(client.get("/api/papers").json()) == 1
+
+
+def test_requests_from_other_sites_are_refused(client):
+    # DNS rebinding: a foreign hostname pointed at 127.0.0.1
+    assert client.get("/api/papers", headers={"host": "evil.example:8377"}).status_code == 400
+    # cross-site form upload / re-conversion from a web page
+    bad = {"origin": "https://evil.example"}
+    assert client.post("/api/papers", files={"file": ("x.pdf", b"%PDF-1.4", "application/pdf")}, headers=bad).status_code == 403
+    assert client.post("/api/papers/some-id/reingest", headers={"sec-fetch-site": "cross-site"}).status_code == 403
+    # the app's own pages still work
+    assert client.get("/api/papers", headers={"origin": f"http://127.0.0.1:{client.base_url.port}"}).status_code == 200

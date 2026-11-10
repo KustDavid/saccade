@@ -53,6 +53,36 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Reading tool", lifespan=lifespan)
 
 
+# ---------------------------------------------------------------------------
+# Local-only guard. The server has no login because it only listens on 127.0.0.1,
+# but a web page open in the same browser can still send requests to that address.
+# Two checks keep other sites out:
+#  - Host must be this machine's own address (stops DNS-rebinding, where a hostile
+#    domain is pointed at 127.0.0.1 to read the library through the browser);
+#  - requests that change something must come from the app's own pages, not from
+#    another site (stops cross-site uploads / re-conversions).
+# ---------------------------------------------------------------------------
+
+_LOCAL_NAMES = ("127.0.0.1", "localhost", "[::1]")
+ALLOWED_HOSTS = {f"{h}:{config.PORT}" for h in _LOCAL_NAMES}
+ALLOWED_ORIGINS = {f"http://{h}" for h in ALLOWED_HOSTS}
+
+
+@app.middleware("http")
+async def local_only(request: Request, call_next):
+    host = (request.headers.get("host") or "").lower()
+    if host not in ALLOWED_HOSTS:
+        return JSONResponse(status_code=400, content={"detail": "This server only answers on its local address"})
+    if request.method not in ("GET", "HEAD", "OPTIONS"):
+        origin = request.headers.get("origin")
+        site = request.headers.get("sec-fetch-site")
+        if (origin is not None and origin.lower() not in ALLOWED_ORIGINS) or site in ("cross-site", "same-site"):
+            return JSONResponse(status_code=403, content={"detail": "Requests from other sites are not accepted"})
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    return response
+
+
 @app.exception_handler(RequestValidationError)
 async def _validation_error(_request: Request, exc: RequestValidationError) -> JSONResponse:
     """Keep the contract's error shape: {"detail": "<message>"}."""
