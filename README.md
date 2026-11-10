@@ -1,8 +1,5 @@
 # A speed reader for PDFs
 
-Read a PDF one word at a time, at a pace you set, without losing the things a word stream
-normally throws away: figures, tables, footnotes, equations and your own highlights.
-
 It runs entirely on your own computer. Nothing you read is uploaded anywhere.
 
 ![The reader: one word at a time on the left, the document's figures in a side panel](docs/screenshot.jpg)
