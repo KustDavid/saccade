@@ -12,11 +12,11 @@ export function mountLibrary(root, ctx) {
   let pollTimer = null;
   let destroyed = false;
 
-  document.title = 'Pace — Library';
+  document.title = 'Reading tool — Library';
   root.innerHTML = `
     <div class="library">
       <header class="lib-head">
-        <div class="brand"><span class="brand-dot" aria-hidden="true"></span>Pace
+        <div class="brand"><span class="brand-dot" aria-hidden="true"></span>Reading tool
           ${isMock ? '<span class="tag" title="Loaded with ?mock=1 — sample data, nothing is saved to the server">demo data</span>' : ''}
         </div>
         <div class="lib-actions">

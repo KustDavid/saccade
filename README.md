@@ -1,4 +1,4 @@
-# Pace — a speed reader for PDFs
+# Reading tool — a speed reader for PDFs
 
 Read a PDF one word at a time, at a pace you set, without losing the things a word stream
 normally throws away: figures, tables, footnotes, equations and your own highlights.
@@ -40,16 +40,12 @@ app appears in your browser at <http://127.0.0.1:8377>. Close the Terminal windo
 
 To look around before adding anything, open <http://127.0.0.1:8377/?mock=1> — a made-up demo paper.
 
-<details>
-<summary>Starting it from a terminal, or on Linux / Windows</summary>
+From a terminal instead:
 
 ```sh
 cd reading_tool/app
 uv run python -m backend.server
 ```
-
-`start.command` is Mac-only. The command above should work elsewhere, but I have only tested on a Mac.
-</details>
 
 ## Adding PDFs
 
@@ -140,6 +136,10 @@ node --test web/tests/*.test.mjs     # reader logic tests
 - `app/web/` — the browser app in plain HTML, CSS and JavaScript; no build step, no dependencies.
 - `app/samples/` — where the PDFs used by the end-to-end tests go. They are not in the repository;
   see `app/samples/README.md` for how to fetch them. Tests that need a missing file are skipped.
+
+## Platform
+
+Optimized for Mac.
 
 ## Licence
 
