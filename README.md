@@ -76,3 +76,7 @@ node --test web/tests/*.test.mjs     # reader logic tests
 
 Backend code is in `app/backend/`, the browser app in `app/web/` (plain HTML/JS, no build step);
 `app/samples/` holds the PDFs the tests run on.
+
+## Licence
+
+MIT — see `LICENSE`.
