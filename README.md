@@ -1,4 +1,4 @@
-# Reading tool — a speed reader for PDFs
+# A speed reader for PDFs
 
 Read a PDF one word at a time, at a pace you set, without losing the things a word stream
 normally throws away: figures, tables, footnotes, equations and your own highlights.
