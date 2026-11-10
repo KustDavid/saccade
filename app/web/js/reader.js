@@ -710,9 +710,34 @@ class Reader {
   // ---------------------------------------------------------------- highlights & notes
 
   /** Stream index of an annotation's first word, or -1 when its section is skipped. */
-  annotIndex(a) {
-    const start = this.stream?.blockStart[a.block];
-    return start >= 0 ? start + a.start : -1;
+  annotIndex(a) { return this.annotRange(a)[0]; }
+
+  /**
+   * [first stream index, word count] of an annotation, or [-1, 0] when its section is skipped.
+   * Found by its text rather than its stored word numbers, so it survives changes in how
+   * paragraphs are split into words.
+   */
+  annotRange(a) {
+    const s = this.stream;
+    const start = s?.blockStart[a.block];
+    if (!(start >= 0)) return [-1, 0];
+    const n = s.blockLen[a.block];
+    const want = String(a.text || '').replace(/\s+/g, '');
+    if (want) {
+      let all = '';
+      const at = [];                                   // character offset where each word starts
+      for (let k = 0; k < n; k++) { at.push(all.length); all += s.items[start + k].text; }
+      const hits = [];
+      for (let j = all.indexOf(want); j >= 0; j = all.indexOf(want, j + 1)) {
+        const first = at.indexOf(j);
+        if (first < 0) continue;
+        let last = first;
+        while (last + 1 < n && at[last + 1] < j + want.length) last++;
+        hits.push([start + first, last - first + 1]);
+      }
+      if (hits.length) return hits.reduce((best, h) => (Math.abs(h[0] - start - a.start) < Math.abs(best[0] - start - a.start) ? h : best));
+    }
+    return [start + Math.min(a.start, n - 1), Math.max(1, Math.min(a.end - a.start + 1, n - a.start))];
   }
 
   /** Map: stream index -> annotation, for every highlighted word. */
@@ -720,9 +745,9 @@ class Reader {
     if (this._hl && this._hlStream === this.stream) return this._hl;
     const m = new Map();
     for (const a of this.annots || []) {
-      const i = this.annotIndex(a);
+      const [i, len] = this.annotRange(a);
       if (i < 0) continue;
-      for (let k = i; k <= i + (a.end - a.start); k++) m.set(k, a);
+      for (let k = i; k < i + len; k++) m.set(k, a);
     }
     this._hl = m; this._hlStream = this.stream;
     return m;

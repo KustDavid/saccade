@@ -44,9 +44,12 @@ const ABBREV_NEVER = new Set([
 // A sentence end only when the next word starts with a capital letter.
 const ABBREV_MAYBE = new Set(['etc.', 'al.', 'inc.', 'ltd.', 'co.', 'corp.', 'u.s.', 'u.k.', 'e.u.']);
 
+const EM_DASH_JOIN = /(?<=[\p{L}\p{N})\]”’"'.,]—)(?=[\p{L}\p{N}(\[“‘"'])/u;
+
 export function tokenize(text) {
-  // Must match the backend's definition of a word index: whitespace-split, empties dropped.
-  return String(text ?? '').split(/\s+/).filter(Boolean);
+  // Whitespace-split, empties dropped. Words joined by an em dash ("realizations—is") are
+  // shown one at a time: the dash stays with the first word, where it earns a clause pause.
+  return String(text ?? '').split(/\s+/).filter(Boolean).flatMap((t) => (t.includes('—') ? t.split(EM_DASH_JOIN) : [t]));
 }
 
 export function clampWpm(wpm) {

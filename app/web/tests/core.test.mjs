@@ -79,6 +79,10 @@ test('tokenize splits on any whitespace and drops empties', () => {
   assert.deepEqual(tokenize('  a  b\tc\nd  '), ['a', 'b', 'c', 'd']);
   assert.deepEqual(tokenize(''), []);
   assert.deepEqual(tokenize(null), []);
+  // em dash joining two words: one word per flash, dash kept with the first
+  assert.deepEqual(tokenize('past realizations—is only'), ['past', 'realizations—', 'is', 'only']);
+  assert.deepEqual(tokenize('effects—as a (—what I call “3.0”—) step'), ['effects—', 'as', 'a', '(—what', 'I', 'call', '“3.0”—)', 'step']);
+  assert.deepEqual(tokenize('1953–2024 well-known a — b x—“y”'), ['1953–2024', 'well-known', 'a', '—', 'b', 'x—', '“y”']);
 });
 
 test('orpIndex follows the classic length table', () => {
@@ -415,10 +419,10 @@ test('mock fixture builds a sane stream', { skip: !existsSync(fixture) && 'no we
   const skipped = paper.sections.filter((x) => x.skip_default).map((x) => x.id);
   assert.ok(skipped.length > 0);
   for (const it of s.items) assert.ok(!skipped.includes(it.section));
-  // word count agrees with the backend definition
+  // word count agrees with the backend definition (plain whitespace split)
   const words = paper.blocks
     .filter((b) => (b.type === 'paragraph' || b.type === 'heading') && !s.skippedIds.has(b.section))
-    .reduce((n, b) => n + tokenize(b.text).length, 0);
+    .reduce((n, b) => n + b.text.split(/\s+/).filter(Boolean).length, 0);
   assert.equal(words, paper.word_count);
   const rows = sectionRanges(s);
   assert.equal(rows.length, paper.sections.length);
