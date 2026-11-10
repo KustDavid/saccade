@@ -1,0 +1,16 @@
+# Your papers never leave your machine: uploaded PDFs, converted text, figure crops,
+# reading progress, highlights and notes all live under papers/ and are not committed.
+papers/
+
+# No PDFs in the repository at all (copyright), except the made-up demo paper used by ?mock=1.
+*.pdf
+!app/web/mock/original.pdf
+
+# Python / tooling
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# macOS
+.DS_Store

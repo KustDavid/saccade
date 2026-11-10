@@ -1,0 +1,1263 @@
+{
+  "id": "mock-neural-demand-2024-7c1e2a",
+  "title": "Learning Demand: Neural Estimation of Discrete-Choice Models with Strategic Consumers",
+  "authors": [
+    "Maya R. Okonkwo",
+    "Daniel Ferreira-Lind",
+    "Hiroshi T. Abe"
+  ],
+  "year": 2024,
+  "source_filename": "neural_demand_wp.pdf",
+  "added": "2026-11-03T15:20:00Z",
+  "status": "ready",
+  "error": null,
+  "page_count": 24,
+  "word_count": 5686,
+  "num_figures": 3,
+  "num_tables": 2,
+  "progress": null,
+  "sections": [
+    {
+      "id": "s1",
+      "title": "Abstract",
+      "level": 1,
+      "first_block": 0,
+      "skip_default": false
+    },
+    {
+      "id": "s2",
+      "title": "1 Introduction",
+      "level": 1,
+      "first_block": 2,
+      "skip_default": false
+    },
+    {
+      "id": "s3",
+      "title": "2 Related Literature",
+      "level": 1,
+      "first_block": 18,
+      "skip_default": false
+    },
+    {
+      "id": "s4",
+      "title": "3 Model",
+      "level": 1,
+      "first_block": 29,
+      "skip_default": false
+    },
+    {
+      "id": "s5",
+      "title": "3.1 Setup",
+      "level": 2,
+      "first_block": 32,
+      "skip_default": false
+    },
+    {
+      "id": "s6",
+      "title": "3.2 Equilibrium",
+      "level": 2,
+      "first_block": 41,
+      "skip_default": false
+    },
+    {
+      "id": "s7",
+      "title": "4 Data and Estimation",
+      "level": 1,
+      "first_block": 50,
+      "skip_default": false
+    },
+    {
+      "id": "s8",
+      "title": "4.1 Data",
+      "level": 2,
+      "first_block": 53,
+      "skip_default": false
+    },
+    {
+      "id": "s9",
+      "title": "4.2 A Neural Demand Estimator",
+      "level": 2,
+      "first_block": 62,
+      "skip_default": false
+    },
+    {
+      "id": "s10",
+      "title": "5 Results",
+      "level": 1,
+      "first_block": 73,
+      "skip_default": false
+    },
+    {
+      "id": "s11",
+      "title": "5.1 Main Estimates",
+      "level": 2,
+      "first_block": 76,
+      "skip_default": false
+    },
+    {
+      "id": "s12",
+      "title": "5.2 Counterfactual Pricing",
+      "level": 2,
+      "first_block": 88,
+      "skip_default": false
+    },
+    {
+      "id": "s13",
+      "title": "6 Robustness",
+      "level": 1,
+      "first_block": 99,
+      "skip_default": false
+    },
+    {
+      "id": "s14",
+      "title": "7 Conclusion",
+      "level": 1,
+      "first_block": 113,
+      "skip_default": false
+    },
+    {
+      "id": "s15",
+      "title": "Acknowledgements",
+      "level": 1,
+      "first_block": 120,
+      "skip_default": true
+    },
+    {
+      "id": "s16",
+      "title": "References",
+      "level": 1,
+      "first_block": 122,
+      "skip_default": true
+    },
+    {
+      "id": "s17",
+      "title": "Appendix A Proofs",
+      "level": 1,
+      "first_block": 141,
+      "skip_default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "Abstract",
+      "section": "s1",
+      "page": 1,
+      "level": 1
+    },
+    {
+      "type": "paragraph",
+      "text": "We develop a neural estimator for discrete-choice demand systems in markets where consumers anticipate future price changes and time their purchases strategically. Building on the random-coefficients framework of Berry, Levinsohn and Pakes (1995), we replace the parametric distribution of tastes with a flexible network that maps market-level observables into mean utilities, while preserving the moment conditions that deliver identification. Applied to 12,408 e-book titles sold on a large North American platform between 2017 and 2021, the estimator recovers own-price elasticities that are nearly three times larger than plain logit estimates yet 3.2% smaller than BLP estimates that ignore intertemporal substitution; roughly 31% of buyers behave as if they wait for discounts. Counterfactual simulations suggest that committing to a uniform price of $4.99 would raise consumer surplus by 6.4% while lowering publisher revenue by only 1.8%.",
+      "section": "s1",
+      "page": 1,
+      "refs": []
+    },
+    {
+      "type": "heading",
+      "text": "1 Introduction",
+      "section": "s2",
+      "page": 2,
+      "level": 1
+    },
+    {
+      "type": "paragraph",
+      "text": "Demand estimation sits at the heart of empirical industrial organization. Whether the question concerns merger review, the welfare gains from new products, or the incidence of a tax, the analyst must first recover how consumers substitute among differentiated goods as prices change. The workhorse approach — the random-coefficients logit model of Berry, Levinsohn and Pakes (1995), henceforth BLP — has proved remarkably durable, in part because it disciplines substitution patterns with a small number of interpretable parameters (Nevo, 2001; Petrin, 2002).",
+      "section": "s2",
+      "page": 2,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "That discipline comes at a cost. The parametric structure that makes BLP tractable also restricts the shape of demand in ways that the data rarely test, and the restrictions bind most severely precisely where counterfactuals are most sensitive: in the tails of the price distribution and among consumers whose behavior is forward-looking. When buyers anticipate that a title will be discounted next week, today's purchase decision depends not only on today's price but on beliefs about tomorrow's; a static model will attribute the resulting intertemporal substitution to unusually elastic demand.",
+      "section": "s2",
+      "page": 2,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "This paper proposes a neural estimator that relaxes these restrictions while retaining the identification logic of the BLP framework. Figure 1 previews the main idea using simulated data. When the true data-generating process features strategic waiting, the standard static estimator is biased toward elastic demand, whereas the neural estimator tracks the true own-price elasticities across 400 simulated markets with a mean absolute error of 0.37.",
+      "section": "s2",
+      "page": 2,
+      "refs": [
+        "fig-1"
+      ]
+    },
+    {
+      "type": "paragraph",
+      "text": "Our approach has three ingredients. First, we write down a model of demand with strategic consumers, in which buyers form rational expectations about future discounts and the outside option includes the value of waiting. Second, we show that the mean utilities in this model are identified from market-level shares, prices, and instruments under conditions analogous to those in Berry and Haile (2014). Third, we approximate the inverse demand mapping with a neural network and estimate its parameters by minimizing a penalized generalized method of moments (GMM) criterion.",
+      "section": "s2",
+      "page": 2,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "The estimator is designed to be practical. It requires no contraction mapping, no simulation of individual taste draws, and no hand-tuned starting values—three features that have historically made BLP-style estimation fragile (Dubé, Fox and Su, 2012; Conlon and Gortmaker, 2020). On a single consumer-grade GPU, estimation on our full sample of 486,215 title-week observations takes about 41 minutes.",
+      "section": "s2",
+      "page": 2,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "We apply the method to a new dataset of e-book sales. The setting is attractive for two reasons. Prices change frequently and are set centrally by publishers, which generates rich within-title variation; and consumers face a highly salient discount calendar, which makes strategic waiting plausible rather than hypothetical. Promotional prices of $1.99 or $2.99 recur on a predictable schedule, and the platform's own surveys suggest that many readers maintain wish lists explicitly in order to buy on sale.",
+      "section": "s2",
+      "page": 3,
+      "refs": []
+    },
+    {
+      "type": "asset",
+      "asset": "fig-1",
+      "section": "s2",
+      "page": 4
+    },
+    {
+      "type": "paragraph",
+      "text": "Three findings stand out. First, demand is considerably more elastic than a plain logit model implies but slightly less elastic than BLP suggests: the mean own-price elasticity is −3.37 under our preferred specification, compared with −1.21 under logit and −3.48 under BLP. Second, roughly 31% of purchases are made by consumers who behave as if they time their purchases around expected discounts. Third, ignoring this behavior leads to systematic errors in counterfactual pricing; a static model overstates the revenue gains from unpredictable promotions by a factor of nearly two.",
+      "section": "s2",
+      "page": 4,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "The second finding deserves emphasis. A share of 0.31 is large relative to the existing literature on storable goods — Hendel and Nevo (2006) find a smaller role for purchase timing in laundry detergent — but it is consistent with the near-zero storage cost of a digital good. A reader who expects a price cut need only wait; nothing spoils, and nothing takes up shelf space.",
+      "section": "s2",
+      "page": 4,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "These magnitudes matter for policy as well as for pricing.",
+      "section": "s2",
+      "page": 5,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Antitrust authorities increasingly evaluate digital markets using tools developed for physical goods. If intertemporal substitution is mistaken for cross-product substitution, diversion ratios will be overstated, and so will the predicted competitive harm from mergers among publishers. Our estimates imply that the median diversion ratio between titles in the same genre falls from 0.087 to 0.061 once strategic timing is accounted for — a reduction of about 30%.",
+      "section": "s2",
+      "page": 5,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Methodologically, the paper contributes to a growing literature that combines machine learning with structural econometrics (Bajari et al., 2015; Chernozhukov et al., 2018; Farrell, Liang and Misra, 2021). Much of that work uses flexible learners for nuisance functions, e.g., propensity scores or first-stage predictions, while keeping the parameter of interest low-dimensional. We instead use the network to represent the structural object itself, i.e., the inverse demand function, and rely on economic restrictions to make the problem well posed.",
+      "section": "s2",
+      "page": 5,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "This choice raises an obvious concern: a sufficiently flexible network can fit any vector of shares, so what prevents it from overfitting? The answer is that the network never sees the shares alone. It is trained against moment conditions built from excluded instruments, and those conditions—not the fit to observed shares—pin down the price coefficient and the distribution of waiting costs.",
+      "section": "s2",
+      "page": 5,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "We also provide an honest accounting of what the method cannot do. Like any market-level demand model, it relies on instruments that shift prices without shifting unobserved quality, and our identification results are asymptotic. In finite samples the network's flexibility trades off against precision, and we show in Section 6 that confidence intervals widen noticeably when the number of markets falls below about 2,000.",
+      "section": "s2",
+      "page": 5,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "The remainder of the paper is organized as follows. Section 2 reviews related literature. Section 3 presents the model and characterizes equilibrium pricing. Section 4 describes the data and the estimator. Section 5 reports the main estimates and counterfactual pricing experiments, Section 6 examines robustness, and Section 7 concludes. Proofs are collected in Appendix A.",
+      "section": "s2",
+      "page": 5,
+      "refs": []
+    },
+    {
+      "type": "heading",
+      "text": "2 Related Literature",
+      "section": "s3",
+      "page": 6,
+      "level": 1
+    },
+    {
+      "type": "paragraph",
+      "text": "Our work relates to three strands of research: the econometrics of differentiated-products demand, the empirical study of dynamic and strategic consumers, and the use of machine learning in structural estimation. We discuss each in turn.",
+      "section": "s3",
+      "page": 6,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "The modern approach to demand estimation with aggregate data begins with McFadden (1974) and the insight of Berry (1994) that unobserved product characteristics can be handled by inverting the market-share equation. Berry, Levinsohn and Pakes (1995) extend this inversion to random-coefficients models, allowing substitution patterns to depend on observed characteristics rather than on market shares alone. Nevo (2001) and Petrin (2002) are influential applications to ready-to-eat cereal and minivans, respectively.",
+      "section": "s3",
+      "page": 6,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "A subsequent literature has studied the numerical and statistical properties of these estimators. Dubé, Fox and Su (2012) show that the nested fixed-point algorithm can converge to incorrect solutions when the inner-loop tolerance is loose, and they propose a mathematical programming with equilibrium constraints (MPEC) formulation; Conlon and Gortmaker (2020) codify a set of best practices and provide the PyBLP software. Our estimator sidesteps the inner loop entirely, though it inherits the need for strong instruments emphasized by Gandhi and Houde (2019).",
+      "section": "s3",
+      "page": 6,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "On identification, Berry and Haile (2014) establish that market-level demand is nonparametrically identified under an index restriction and a completeness condition on the instruments. Compiani (2022) turns that result into a nonparametric estimator based on Bernstein polynomials and shows that parametric restrictions can materially distort counterfactual predictions. Our identification argument in Section 3.2 adapts these conditions to a setting in which the outside option has a forward-looking component.",
+      "section": "s3",
+      "page": 6,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "The second strand studies consumers who are not myopic. In durable-goods markets, buyers who expect prices to fall may delay purchase, a possibility formalized in the price-skimming model of Besanko and Winston (1990) and estimated by Gowrisankaran and Rysman (2012) for digital camcorders. Hendel and Nevo (2006) document that consumers of storable goods accumulate inventory during sales, which biases static estimates of own-price elasticities upward in absolute value.",
+      "section": "s3",
+      "page": 6,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Digital goods occupy an interesting middle ground. They are durable in the sense that a purchased e-book is never consumed away, yet a consumer typically buys each title once; there is no inventory to accumulate. Strategic behavior therefore takes the form of \"waiting\" rather than \"stockpiling,\" and its importance depends on how predictable discounts are. Our data are well suited to measure it because the platform's promotional calendar is public and highly regular.",
+      "section": "s3",
+      "page": 6,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "The third strand applies machine-learning tools to economic estimation. Bajari et al. (2015) compare the out-of-sample predictive performance of several learners for demand and find that flexible methods dominate linear models; however, they do not impose the equilibrium restrictions needed for counterfactuals. Hartford et al. (2017) propose “Deep IV,” a two-stage procedure that uses neural networks for both the first-stage price model and the outcome equation.",
+      "section": "s3",
+      "page": 7,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Farrell, Liang and Misra (2021) derive nonasymptotic bounds for deep feedforward networks with rectified linear unit (ReLU) activations and show that the resulting estimates can be plugged into semiparametric inference procedures. The double/debiased machine learning framework of Chernozhukov et al. (2018) provides the orthogonalization step we use to construct heteroskedasticity-robust standard errors for the low-dimensional parameters.",
+      "section": "s3",
+      "page": 7,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Relative to these papers, our contribution is to embed the network within an equilibrium model of supply and demand. The network is not a reduced-form predictor; its output is interpreted as a vector of mean utilities, and the estimator enforces the restriction that those utilities rationalize observed shares given consumers' beliefs about future prices.",
+      "section": "s3",
+      "page": 7,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "In this sense, the paper is closer in spirit to structural estimation than to prediction.",
+      "section": "s3",
+      "page": 7,
+      "refs": []
+    },
+    {
+      "type": "heading",
+      "text": "3 Model",
+      "section": "s4",
+      "page": 7,
+      "level": 1
+    },
+    {
+      "type": "paragraph",
+      "text": "This section develops a model of demand for differentiated digital goods in which some consumers anticipate future discounts. We begin with the primitives and the consumer's problem, then characterize the publishers' pricing game. The model is deliberately simple; its role is to clarify which features of the data identify strategic waiting, not to capture every institutional detail of the e-book market.",
+      "section": "s4",
+      "page": 7,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Throughout, we index consumers by i, titles by j = 1, ..., J, and markets by t. A market is a genre-week pair, which yields 4,212 markets over the sample period. We write vectors without bold type, e.g., p_t = (p_1t, ..., p_Jt).",
+      "section": "s4",
+      "page": 7,
+      "refs": []
+    },
+    {
+      "type": "heading",
+      "text": "3.1 Setup",
+      "section": "s5",
+      "page": 8,
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "Each period, a continuum of consumers arrives in market t. Consumer i chooses between purchasing one of the J titles available in the market and taking an outside option. Following the standard random-utility framework, the indirect utility of consumer i from purchasing title j in market t is given by equation (1), where x_jt is a vector of observed characteristics, p_jt is the price, ξ_jt captures characteristics observed by consumers and publishers but not by the econometrician, and ε_ijt is an idiosyncratic taste shock.",
+      "section": "s5",
+      "page": 8,
+      "refs": []
+    },
+    {
+      "type": "equation",
+      "text": "",
+      "image": "eq-1.png",
+      "width": 900,
+      "height": 120,
+      "section": "s5",
+      "page": 8
+    },
+    {
+      "type": "paragraph",
+      "text": "The term E_t[p_j,t+1 − p_jt] is the expected change in price between this period and the next, formed under the information available at t. Its coefficient γ_i measures the consumer's sensitivity to anticipated discounts. A myopic consumer has γ_i = 0; a strategic consumer has γ_i > 0 and is less likely to buy today when she expects the price to fall.",
+      "section": "s5",
+      "page": 8,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "We allow both the price coefficient α_i and the anticipation coefficient γ_i to vary across consumers. Rather than assuming that (α_i, γ_i) follows a bivariate normal distribution, as is standard (Berry, Levinsohn and Pakes, 1995), we leave the joint distribution unrestricted and recover it from the estimated inverse demand function. This is the key departure from BLP.",
+      "section": "s5",
+      "page": 8,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Consumers who do not purchase receive the utility of the outside option, normalized to u_i0t = W_it + ε_i0t. For a myopic consumer, W_it = 0. For a strategic consumer, W_it equals the discounted expected value of re-entering the market next period, which depends on the full distribution of anticipated prices; we refer to it as the option value of waiting.",
+      "section": "s5",
+      "page": 8,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Expectations are formed rationally with respect to a publicly observed promotional calendar. Specifically, we assume that consumers know the probability π_jt that title j will be featured in the platform's daily deal within the next 14 days, and that the deal price is drawn from a known distribution with mean $1.99 and standard deviation $0.62. This assumption is strong, but it is also testable; Section 6 relaxes it by allowing consumers to underweight distant promotions.",
+      "section": "s5",
+      "page": 8,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Two features of this setup are worth noting. First, because ε_ijt is drawn from a type I extreme value distribution, choice probabilities conditional on (α_i, γ_i) take the familiar logit form; aggregation over the taste distribution then yields market shares. Second, the option value W_it enters the denominator of every choice probability, so a rise in expected discounts lowers demand for all titles proportionally—a restriction that we test, and fail to reject, in Section 6.",
+      "section": "s5",
+      "page": 9,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Aggregating over consumers, the market share of title j is the integral of individual choice probabilities with respect to the distribution of (α_i, γ_i, W_it). The full expression appears in Appendix A as equation (A.1).",
+      "section": "s5",
+      "page": 9,
+      "refs": []
+    },
+    {
+      "type": "heading",
+      "text": "3.2 Equilibrium",
+      "section": "s6",
+      "page": 9,
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "On the supply side, each publisher f owns a set of titles F_f and sets prices to maximize expected discounted profits. Because e-books have negligible marginal cost of reproduction, the relevant cost c_jt is the royalty paid to the author plus the platform's commission, which together average 52% of the list price in our data.",
+      "section": "s6",
+      "page": 9,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "We focus on a Markov perfect equilibrium in which prices depend only on the current state, defined as the vector of product characteristics, the promotional calendar, and the distribution of consumers who have not yet purchased. In such an equilibrium, publishers internalize that a lower price today shrinks the pool of strategic consumers who would otherwise buy tomorrow.",
+      "section": "s6",
+      "page": 9,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Holding the continuation values fixed, the first-order conditions for the publishers' pricing problem can be written in matrix form as equation (2). Here H is the ownership matrix, whose (j, k) element equals one if titles j and k are owned by the same publisher and zero otherwise, ⊙ denotes the element-wise product, and ∇_p s_t is the Jacobian of market shares with respect to prices.",
+      "section": "s6",
+      "page": 9,
+      "refs": []
+    },
+    {
+      "type": "equation",
+      "text": "",
+      "image": "eq-2.png",
+      "width": 900,
+      "height": 120,
+      "section": "s6",
+      "page": 9
+    },
+    {
+      "type": "paragraph",
+      "text": "Equation (2) differs from the familiar static condition in one respect: the Jacobian ∇_p s_t includes the response of strategic consumers to today's price through its effect on the option value of waiting. When a publisher cuts its price, some consumers who planned to wait buy immediately — a form of intertemporal cannibalization that the static model omits.",
+      "section": "s6",
+      "page": 9,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Proposition 1. Suppose the distribution of (α_i, γ_i) has full support on a compact set, the instruments satisfy the completeness condition of Berry and Haile (2014), and the promotional calendar is common knowledge. Then the mean utilities δ_jt and the joint distribution of tastes are identified from the joint distribution of shares, prices, characteristics, and instruments.",
+      "section": "s6",
+      "page": 10,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "The proof, which appears in Appendix A, proceeds in two steps. The first step uses the invertibility of the share mapping to recover δ_jt market by market; the second uses exogenous variation in the promotional calendar—specifically, the platform's randomized assignment of daily-deal slots—to separate γ_i from α_i. Intuitively, a title's demand should fall in the days before a scheduled promotion only if some consumers anticipate it.",
+      "section": "s6",
+      "page": 10,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "The identification argument therefore rests on a feature of the institutional environment rather than on functional form.",
+      "section": "s6",
+      "page": 10,
+      "refs": []
+    },
+    {
+      "type": "heading",
+      "text": "4 Data and Estimation",
+      "section": "s7",
+      "page": 10,
+      "level": 1
+    },
+    {
+      "type": "paragraph",
+      "text": "This section describes our data and the neural estimator. We first document the main features of the e-book market that motivate the model, then explain how the network is specified and trained.",
+      "section": "s7",
+      "page": 10,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "All monetary values are in 2021 U.S. dollars, deflated using the Consumer Price Index for recreational reading materials. Shares are computed relative to a market size equal to the number of active platform users who browsed the relevant genre in a given week.",
+      "section": "s7",
+      "page": 10,
+      "refs": []
+    },
+    {
+      "type": "heading",
+      "text": "4.1 Data",
+      "section": "s8",
+      "page": 10,
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "Our primary data source is a proprietary panel of daily sales and prices for 12,408 e-book titles sold on a large North American digital bookstore between January 2017 and December 2021. The panel covers 214 publishers and 11 genres, from literary fiction to self-help. We aggregate daily observations to the title-week level, which yields 486,215 observations after dropping titles with fewer than 26 weeks of sales. Because the platform does not disclose wholesale terms, we rely on publisher filings and a hand-collected sample of 1,137 author contracts to measure royalty rates, and we impute the remainder from publisher-by-year averages.",
+      "section": "s8",
+      "page": 10,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Prices are highly dispersed. The median list price is $9.99, but the interquartile range runs from $4.99 to $12.99, and roughly 18% of title-weeks feature a temporary discount of at least 40%. Discounts are concentrated around the platform's daily deal, in which a single title per genre is offered at a promotional price — most often $1.99 or $2.99 — for 24 hours.",
+      "section": "s8",
+      "page": 11,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Two institutional features make the daily deal useful for identification. First, deal slots are assigned by the platform rather than by publishers, using a lottery among eligible titles; publishers can opt in but cannot choose the date. Second, the deal calendar for the following two weeks is published on the platform's homepage, so consumers can, in principle, anticipate which titles will be discounted.",
+      "section": "s8",
+      "page": 11,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Whether they actually do is an empirical question, and the answer turns out to be yes.",
+      "section": "s8",
+      "page": 11,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "The raw data reveal a pronounced dip in sales in the days preceding a scheduled deal. Averaged across titles, weekly unit sales fall by 7.4% between the week a deal is announced and the week it takes effect, relative to matched control titles that were eligible for the lottery but not selected. Sales then spike on the deal day and remain elevated for roughly a week, consistent with the release of pent-up demand.",
+      "section": "s8",
+      "page": 11,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "We complement the sales data with title characteristics scraped from the platform: page count, average star rating, number of reviews, series membership, and an indicator for whether the title appeared on a bestseller list in the preceding year. Summary statistics are reported in the online appendix; the median title has 312 pages, a rating of 4.2 stars, and 1,876 reviews.",
+      "section": "s8",
+      "page": 11,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Our instruments are of two types. Cost shifters include the author's royalty rate, which varies across contracts and is determined largely by the date at which the contract was signed. Hausman-style instruments—the average price of the same title in other regional storefronts—capture common shocks to publisher pricing strategy, under the assumption that demand shocks are uncorrelated across regions (Nevo, 2001).",
+      "section": "s8",
+      "page": 11,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "In addition, we construct differentiation instruments in the spirit of Gandhi and Houde (2019), which measure how crowded a title's neighborhood in characteristic space is. These instruments are especially informative about substitution patterns; in our first-stage regressions they raise the partial F-statistic on price from 23.1 to 68.4.",
+      "section": "s8",
+      "page": 11,
+      "refs": []
+    },
+    {
+      "type": "heading",
+      "text": "4.2 A Neural Demand Estimator",
+      "section": "s9",
+      "page": 12,
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "The central object in our approach is the inverse demand function, which maps a vector of observed market shares and characteristics into mean utilities. In the BLP model this mapping is computed numerically for each candidate value of the nonlinear parameters, typically by a contraction mapping. We instead approximate it directly with a neural network δ(s_t, x_t; θ), where θ collects the network weights.",
+      "section": "s9",
+      "page": 12,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "The network has a permutation-equivariant architecture: titles within a market are processed by a shared encoder, pooled through a symmetric aggregation layer, and then decoded into title-specific mean utilities. This structure ensures that the estimated demand system does not depend on the arbitrary order in which titles are listed — a property that standard feedforward networks lack and that turns out to matter for out-of-sample performance.",
+      "section": "s9",
+      "page": 12,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "We estimate θ, together with the linear parameters (β, α), by minimizing the penalized GMM criterion in equation (3), where Z_t is the matrix of instruments for market t, λ is a regularization parameter, and the norm on θ is the usual Euclidean norm.",
+      "section": "s9",
+      "page": 12,
+      "refs": []
+    },
+    {
+      "type": "equation",
+      "text": "",
+      "image": "eq-3.png",
+      "width": 900,
+      "height": 150,
+      "section": "s9",
+      "page": 12
+    },
+    {
+      "type": "paragraph",
+      "text": "The first term is a sample analog of the moment condition E[Z'ξ] = 0 and is what gives the estimator its structural content. The second term is a ridge penalty that shrinks the network weights toward zero; we choose λ by fivefold cross-validation over markets, which selects λ = 0.004 in our baseline sample.",
+      "section": "s9",
+      "page": 12,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Training uses the Adam optimizer (Kingma and Ba, 2015) with a learning rate of 0.001, a batch size of 64 markets, and early stopping based on the value of the moment criterion in a held-out set of markets. The encoder and decoder each have three hidden layers of width 256 with ReLU activations. Results are not sensitive to these choices within a reasonable range; see Section 6.",
+      "section": "s9",
+      "page": 12,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "A natural question is whether the network can recover elasticities that it never observes directly. Figure 1 addresses this question in a Monte Carlo setting calibrated to our data. We simulate 400 markets from the model in Section 3 with a known taste distribution, estimate demand with both the neural estimator and a static BLP model, and compare the implied own-price elasticities with their true values.",
+      "section": "s9",
+      "page": 13,
+      "refs": [
+        "fig-1"
+      ]
+    },
+    {
+      "type": "paragraph",
+      "text": "The neural estimator performs well. Its estimates lie close to the 45-degree line throughout the support of true elasticities, and the 95% confidence band, constructed by a parametric bootstrap with 200 replications, covers the truth in 94.1% of markets. The static BLP model, by contrast, overstates the magnitude of elasticities by 0.6 on average, with the largest errors in markets with frequent scheduled promotions.",
+      "section": "s9",
+      "page": 13,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Inference on the low-dimensional parameters (α, β, and the moments of the taste distribution) follows the debiased approach of Chernozhukov et al. (2018). We use cross-fitting with five folds and report heteroskedasticity-robust standard errors clustered at the title level. For functionals of the network, such as elasticities and welfare measures, we rely on the bootstrap.",
+      "section": "s9",
+      "page": 13,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "One limitation deserves mention: the network approximates the inverse demand function only on the support of the observed data. Counterfactuals that move prices far outside the historical range, e.g., setting every title to $0.99, would require extrapolation that no flexible estimator can deliver credibly.",
+      "section": "s9",
+      "page": 13,
+      "refs": []
+    },
+    {
+      "type": "heading",
+      "text": "5 Results",
+      "section": "s10",
+      "page": 13,
+      "level": 1
+    },
+    {
+      "type": "paragraph",
+      "text": "We now present the estimates. Section 5.1 reports parameter estimates and implied elasticities from the neural estimator and from three benchmark models. Section 5.2 uses the estimates to evaluate counterfactual pricing policies.",
+      "section": "s10",
+      "page": 13,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Unless otherwise noted, all specifications include genre and week fixed effects and control for title age, series membership, and bestseller status. Standard errors are clustered by title.",
+      "section": "s10",
+      "page": 13,
+      "refs": []
+    },
+    {
+      "type": "heading",
+      "text": "5.1 Main Estimates",
+      "section": "s11",
+      "page": 13,
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "Table 1 reports our main estimates. Column (1) presents a plain logit model estimated by ordinary least squares, column (2) instruments for price using the cost shifters and Hausman-style instruments, column (3) reports BLP estimates with normally distributed random coefficients on price and anticipated discounts, and column (4) reports the neural estimator.",
+      "section": "s11",
+      "page": 13,
+      "refs": [
+        "tab-1"
+      ]
+    },
+    {
+      "type": "paragraph",
+      "text": "The comparison between columns (1) and (2) illustrates the familiar endogeneity bias. Instrumenting for price raises the magnitude of the price coefficient from −0.412 to −1.087, consistent with publishers setting higher prices for titles with higher unobserved quality. The first-stage F-statistic of 68.4 suggests that weak instruments are not a concern.",
+      "section": "s11",
+      "page": 14,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Columns (3) and (4) introduce strategic consumers. In both, the coefficient on the expected price change is positive and precisely estimated: 0.402 (standard error 0.069) in the BLP specification and 0.377 (0.058) in the neural specification. A one-dollar increase in the expected discount reduces the probability of buying today by about 2.9 percentage points for the average consumer.",
+      "section": "s11",
+      "page": 14,
+      "refs": []
+    },
+    {
+      "type": "asset",
+      "asset": "tab-1",
+      "section": "s11",
+      "page": 14
+    },
+    {
+      "type": "paragraph",
+      "text": "The mean own-price elasticity is −3.37 under the neural estimator, close to the BLP value of −3.48 but far from the −1.21 implied by OLS. The difference between columns (3) and (4) is small on average but large in the tails. Among the 10% of titles with the most frequent promotions, the neural estimator yields a mean elasticity of −2.64, compared with −3.51 under BLP.",
+      "section": "s11",
+      "page": 14,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "This pattern matches the Monte Carlo evidence. As in Figure 1, the parametric model attributes part of the intertemporal response to contemporaneous price sensitivity, and the bias is concentrated where promotions are frequent; the bottom panel of Table 1 shows that the neural estimator also attains a lower out-of-sample root mean squared error (0.214 versus 0.287 in log shares).",
+      "section": "s11",
+      "page": 15,
+      "refs": [
+        "fig-1",
+        "tab-1"
+      ]
+    },
+    {
+      "type": "paragraph",
+      "text": "What share of consumers is strategic? The neural estimator recovers the full distribution of γ_i, and we classify a consumer as strategic if her anticipation coefficient exceeds 0.1, which corresponds to a willingness to delay purchase by at least one week for a $2 discount. By this definition, 31% of purchases are made by strategic consumers; the corresponding BLP figure is 29%.",
+      "section": "s11",
+      "page": 15,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Strategic consumers differ systematically from myopic ones. They are more price-sensitive — their mean price coefficient is −2.41 versus −0.96 — and they are disproportionately concentrated in genres with long series, such as fantasy and romance, where readers can plan purchases of upcoming installments.",
+      "section": "s11",
+      "page": 15,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "The estimates also speak to the substitution patterns that matter for antitrust. Under the neural estimator, the median diversion ratio between two titles in the same genre is 0.061, compared with 0.087 under BLP. Part of the difference reflects the fact that BLP channels intertemporal substitution (buying the same title later) into substitution toward other titles today.",
+      "section": "s11",
+      "page": 15,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "In short, the neural estimator changes the answer exactly where the static model is least credible.",
+      "section": "s11",
+      "page": 15,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "We stress that these differences are not driven by the network's flexibility per se. When we estimate a static version of the neural model, which sets γ_i = 0 for all consumers, the resulting elasticities are within 0.05 of the BLP values. It is the combination of flexibility and the forward-looking outside option that generates the results in column (4) of Table 1.",
+      "section": "s11",
+      "page": 15,
+      "refs": [
+        "tab-1"
+      ]
+    },
+    {
+      "type": "heading",
+      "text": "5.2 Counterfactual Pricing",
+      "section": "s12",
+      "page": 15,
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "We next use the estimates to evaluate three pricing policies. In the baseline, publishers set prices as in the data, including participation in the daily deal. In the first counterfactual, the platform abolishes the daily deal and each publisher commits to a constant price. In the second, publishers may discount freely but the platform no longer announces the deal calendar in advance, so promotions become unpredictable.",
+      "section": "s12",
+      "page": 15,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Figure 2 summarizes the results. Panel (a) of Figure 2 plots the implied aggregate demand curve for a representative bestseller under each policy, holding the prices of competing titles at their equilibrium values; panel (b) reports changes in consumer surplus, publisher profit, and total welfare relative to the baseline.",
+      "section": "s12",
+      "page": 16,
+      "refs": [
+        "fig-2"
+      ]
+    },
+    {
+      "type": "paragraph",
+      "text": "Removing the daily deal steepens the demand curve at high prices because consumers no longer hold out for a discount. Equilibrium list prices fall by an average of $0.74, and the share of consumers who wait declines from 31% to 12%. Consumer surplus rises by 6.4%, while publisher revenue falls by 1.8%; the net effect on total welfare is positive but small.",
+      "section": "s12",
+      "page": 16,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Concealing the deal calendar produces a different pattern. Because strategic consumers can no longer time their purchases precisely, some buy at full price and others wait in vain. Publisher revenue rises by 2.7%, but consumer surplus falls by 3.9%, and total welfare declines — a reminder that information about future prices has social value even when it erodes firm profits.",
+      "section": "s12",
+      "page": 16,
+      "refs": []
+    },
+    {
+      "type": "asset",
+      "asset": "fig-2",
+      "section": "s12",
+      "page": 17
+    },
+    {
+      "type": "paragraph",
+      "text": "The magnitudes in Figure 2 depend on the estimated distribution of anticipation coefficients. Using the BLP estimates from column (3) of Table 1 instead of the neural estimates roughly doubles the predicted revenue gain from concealing the calendar, because the normal distribution assigns too much mass to highly strategic consumers.",
+      "section": "s12",
+      "page": 17,
+      "refs": [
+        "fig-2",
+        "tab-1"
+      ]
+    },
+    {
+      "type": "paragraph",
+      "text": "How should these results be interpreted? We do not claim that the platform's current policy is inefficient; the daily deal serves purposes, e.g., discovery of new authors, that our model does not capture. Rather, the counterfactuals isolate the component of the policy's effect that operates through strategic timing.",
+      "section": "s12",
+      "page": 17,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "A complementary exercise asks what uniform price would maximize total welfare if the platform could impose one. The answer is $4.99 for the median genre, roughly half the median list price. At that price, strategic waiting essentially disappears, since there is no discount to wait for, and deadweight loss falls by 41%.",
+      "section": "s12",
+      "page": 18,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "These calculations hold the set of available titles fixed. In the longer run, lower and more predictable prices may reduce the incentive to publish marginal titles; quantifying that effect would require a model of entry and exit, which we leave to future work.",
+      "section": "s12",
+      "page": 18,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Overall, the counterfactuals show that modeling strategic consumers changes not only the level of predicted effects but sometimes their sign. A regulator relying on static estimates would conclude that concealing the deal calendar is nearly welfare-neutral; our estimates imply a loss of $38 million per year in consumer surplus, or roughly $0.41 per active user.",
+      "section": "s12",
+      "page": 18,
+      "refs": []
+    },
+    {
+      "type": "heading",
+      "text": "6 Robustness",
+      "section": "s13",
+      "page": 18,
+      "level": 1
+    },
+    {
+      "type": "paragraph",
+      "text": "This section examines the sensitivity of our results to the choice of instruments, the sample, the network architecture, and the assumption of rational expectations. Table 2 collects the main robustness checks for the neural estimator; each column reports the price coefficient, the anticipation coefficient, the mean own-price elasticity, and the share of strategic consumers.",
+      "section": "s13",
+      "page": 18,
+      "refs": [
+        "tab-2"
+      ]
+    },
+    {
+      "type": "paragraph",
+      "text": "Column (1) of Table 2 drops the Hausman-style instruments and relies only on cost shifters and differentiation instruments. The concern is that common demand shocks across regional storefronts, for example a film adaptation announced nationally, would violate the exclusion restriction. The estimates are slightly less precise but essentially unchanged: the mean elasticity is −3.31 with a standard error of 0.21.",
+      "section": "s13",
+      "page": 18,
+      "refs": [
+        "tab-2"
+      ]
+    },
+    {
+      "type": "paragraph",
+      "text": "Column (2) re-estimates the model on a random half of markets and evaluates fit on the other half. Out-of-sample, the neural estimator's root mean squared error in log shares is 0.221, only modestly above its in-sample value, which suggests that the cross-validated penalty is effective at preventing overfitting.",
+      "section": "s13",
+      "page": 18,
+      "refs": []
+    },
+    {
+      "type": "asset",
+      "asset": "tab-2",
+      "section": "s13",
+      "page": 19
+    },
+    {
+      "type": "paragraph",
+      "text": "Column (3) excludes the November and December holiday weeks, when gift purchases and platform-wide sales may change the composition of buyers. The share of strategic consumers falls slightly, to 28%, and the anticipation coefficient is statistically indistinguishable from the baseline.",
+      "section": "s13",
+      "page": 19,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "A different concern is that our measure of strategic behavior simply picks up heterogeneity in price sensitivity across genres. Figure 3 addresses this by plotting, for each of 50 equal-sized bins of titles, the estimated markup against the predicted share of strategic consumers among the title's buyers. If strategic waiting disciplines pricing, titles with more strategic buyers should have lower markups.",
+      "section": "s13",
+      "page": 19,
+      "refs": [
+        "fig-3"
+      ]
+    },
+    {
+      "type": "paragraph",
+      "text": "That is exactly what we find. The binned scatter shows a clear negative relationship, with a slope of −0.42 (standard error 0.07); a ten-percentage-point increase in the strategic share is associated with a markup that is 4.2 percentage points lower. The relationship holds within genre and is not driven by a handful of outliers.",
+      "section": "s13",
+      "page": 19,
+      "refs": []
+    },
+    {
+      "type": "asset",
+      "asset": "fig-3",
+      "section": "s13",
+      "page": 20
+    },
+    {
+      "type": "paragraph",
+      "text": "Taken together, Figure 3 and Table 2 suggest that the strategic-consumer channel is not an artifact of functional form. In particular, the negative relationship between markups and strategic shares appears even when we restrict attention to titles that never participate in the daily deal, for which the anticipation coefficient is identified only from publisher-initiated discounts.",
+      "section": "s13",
+      "page": 20,
+      "refs": [
+        "fig-3",
+        "tab-2"
+      ]
+    },
+    {
+      "type": "paragraph",
+      "text": "We next vary the network architecture. Doubling the width of the hidden layers to 512 changes the mean elasticity by less than 0.02; halving it to 128 increases the out-of-sample error by about 6% but leaves the structural parameters within one standard error of the baseline. Replacing ReLU with smooth activations yields virtually identical results.",
+      "section": "s13",
+      "page": 20,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "The rational-expectations assumption is perhaps the most consequential. To relax it, we allow consumers to discount promotions more than 7 days ahead by a factor κ ∈ [0, 1], and we estimate κ jointly with the other parameters. The point estimate is κ = 0.83, i.e., consumers underweight distant promotions somewhat, but the implied share of strategic consumers falls only from 31% to 27%.",
+      "section": "s13",
+      "page": 21,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Finally, we revisit the finite-sample behavior noted in the introduction. Re-estimating the model on random subsamples of 2,000, 1,000, and 500 markets, we find that the bootstrap confidence intervals for the mean elasticity widen from ±0.18 in the full sample to ±0.29, ±0.44, and ±0.71, respectively. Researchers with fewer markets may therefore prefer a more parametric approach.",
+      "section": "s13",
+      "page": 21,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Across all specifications in Table 2, the ranking of the three pricing policies in Figure 2 is preserved: removing the daily deal raises consumer surplus, and concealing the calendar lowers it. The magnitudes vary by at most a third, which we view as reassuring given the scope of the alternatives considered.",
+      "section": "s13",
+      "page": 21,
+      "refs": [
+        "tab-2",
+        "fig-2"
+      ]
+    },
+    {
+      "type": "heading",
+      "text": "7 Conclusion",
+      "section": "s14",
+      "page": 21,
+      "level": 1
+    },
+    {
+      "type": "paragraph",
+      "text": "This paper has developed a neural estimator for discrete-choice demand with strategic consumers and applied it to the market for e-books. The estimator retains the identification logic of BLP — moment conditions built from excluded instruments — while replacing parametric assumptions on the taste distribution with a flexible network.",
+      "section": "s14",
+      "page": 21,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Our empirical results show that roughly 31% of e-book purchases are made by consumers who time their purchases around anticipated discounts, and that ignoring this behavior distorts both elasticities and counterfactual predictions. The markup evidence in Figure 3 suggests that these buyers already discipline publisher pricing. The distortions are largest in exactly those settings—frequent, predictable promotions—where policy questions are most pressing.",
+      "section": "s14",
+      "page": 21,
+      "refs": [
+        "fig-3"
+      ]
+    },
+    {
+      "type": "paragraph",
+      "text": "The counterfactual exercises in Figure 2 illustrate why this matters. Policies that look similar under a static model can have opposite welfare consequences once consumers are allowed to wait, and the value of information about future prices emerges as a first-order consideration.",
+      "section": "s14",
+      "page": 21,
+      "refs": [
+        "fig-2"
+      ]
+    },
+    {
+      "type": "paragraph",
+      "text": "Several extensions seem promising. The approach could be applied to other markets with predictable price cycles, such as airline tickets, video games, or seasonal apparel. It could also be combined with individual-level data, where available, to sharpen the identification of the taste distribution; and the network architecture could be adapted to markets with thousands of products, where the computational advantages over BLP would be even larger. Each of these extensions raises new questions about instruments, about how consumers learn the timing of discounts, and about the interaction between platform design and publisher pricing.",
+      "section": "s14",
+      "page": 22,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "More broadly, we hope the paper illustrates a productive division of labor between economics and machine learning: economic theory supplies the restrictions that make counterfactuals meaningful, and flexible estimators let the data, rather than convenient functional forms, determine the shape of demand.",
+      "section": "s14",
+      "page": 22,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "We view this as a promising direction for empirical work on digital markets.",
+      "section": "s14",
+      "page": 22,
+      "refs": []
+    },
+    {
+      "type": "heading",
+      "text": "Acknowledgements",
+      "section": "s15",
+      "page": 22,
+      "level": 1
+    },
+    {
+      "type": "paragraph",
+      "text": "We thank seminar participants at several universities and conferences for helpful comments, and we are grateful to an anonymous data provider for access to the sales panel. Ana Lindqvist and Tomás Reyes provided excellent research assistance. Financial support from the Center for Digital Markets is gratefully acknowledged. All errors are our own.",
+      "section": "s15",
+      "page": 22,
+      "refs": []
+    },
+    {
+      "type": "heading",
+      "text": "References",
+      "section": "s16",
+      "page": 22,
+      "level": 1
+    },
+    {
+      "type": "paragraph",
+      "text": "Bajari, P., Nekipelov, D., Ryan, S. P., and Yang, M. (2015). Machine Learning Methods for Demand Estimation. American Economic Review, 105(5), 481–485.",
+      "section": "s16",
+      "page": 22,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Berry, S. (1994). Estimating Discrete-Choice Models of Product Differentiation. RAND Journal of Economics, 25(2), 242–262.",
+      "section": "s16",
+      "page": 22,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Berry, S., and Haile, P. (2014). Identification in Differentiated Products Markets Using Market Level Data. Econometrica, 82(5), 1749–1797.",
+      "section": "s16",
+      "page": 22,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Berry, S., Levinsohn, J., and Pakes, A. (1995). Automobile Prices in Market Equilibrium. Econometrica, 63(4), 841–890.",
+      "section": "s16",
+      "page": 22,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Besanko, D., and Winston, W. L. (1990). Optimal Price Skimming by a Monopolist Facing Rational Consumers. Management Science, 36(5), 555–567.",
+      "section": "s16",
+      "page": 22,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., and Robins, J. (2018). Double/Debiased Machine Learning for Treatment and Structural Parameters. The Econometrics Journal, 21(1), C1–C68.",
+      "section": "s16",
+      "page": 22,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Compiani, G. (2022). Market Counterfactuals and the Specification of Multiproduct Demand: A Nonparametric Approach. Quantitative Economics, 13(2), 545–591.",
+      "section": "s16",
+      "page": 23,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Conlon, C., and Gortmaker, J. (2020). Best Practices for Differentiated Products Demand Estimation with PyBLP. RAND Journal of Economics, 51(4), 1108–1161.",
+      "section": "s16",
+      "page": 23,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Dubé, J.-P., Fox, J. T., and Su, C.-L. (2012). Improving the Numerical Performance of Static and Dynamic Aggregate Discrete Choice Random Coefficients Demand Estimation. Econometrica, 80(5), 2231–2267.",
+      "section": "s16",
+      "page": 23,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Farrell, M. H., Liang, T., and Misra, S. (2021). Deep Neural Networks for Estimation and Inference. Econometrica, 89(1), 181–213.",
+      "section": "s16",
+      "page": 23,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Gandhi, A., and Houde, J.-F. (2019). Measuring Substitution Patterns in Differentiated-Products Industries. NBER Working Paper No. 26375.",
+      "section": "s16",
+      "page": 23,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Gowrisankaran, G., and Rysman, M. (2012). Dynamics of Consumer Demand for New Durable Goods. Journal of Political Economy, 120(6), 1173–1219.",
+      "section": "s16",
+      "page": 23,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Hartford, J., Lewis, G., Leyton-Brown, K., and Taddy, M. (2017). Deep IV: A Flexible Approach for Counterfactual Prediction. Proceedings of the 34th International Conference on Machine Learning, PMLR 70, 1414–1423.",
+      "section": "s16",
+      "page": 23,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Hendel, I., and Nevo, A. (2006). Measuring the Implications of Sales and Consumer Inventory Behavior. Econometrica, 74(6), 1637–1673.",
+      "section": "s16",
+      "page": 23,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Kingma, D. P., and Ba, J. (2015). Adam: A Method for Stochastic Optimization. International Conference on Learning Representations (ICLR).",
+      "section": "s16",
+      "page": 23,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "McFadden, D. (1974). Conditional Logit Analysis of Qualitative Choice Behavior. In P. Zarembka (ed.), Frontiers in Econometrics, 105–142. New York: Academic Press.",
+      "section": "s16",
+      "page": 23,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Nevo, A. (2001). Measuring Market Power in the Ready-to-Eat Cereal Industry. Econometrica, 69(2), 307–342.",
+      "section": "s16",
+      "page": 23,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Petrin, A. (2002). Quantifying the Benefits of New Products: The Case of the Minivan. Journal of Political Economy, 110(4), 705–729.",
+      "section": "s16",
+      "page": 23,
+      "refs": []
+    },
+    {
+      "type": "heading",
+      "text": "Appendix A Proofs",
+      "section": "s17",
+      "page": 24,
+      "level": 1
+    },
+    {
+      "type": "paragraph",
+      "text": "Proof of Proposition 1. Fix a market t and suppress the market subscript. Under the type I extreme value assumption, market shares are given by equation (A.1), where μ_ij = −α_i p_j + γ_i E[Δp_j] collects the consumer-specific components of utility and F denotes the joint distribution of tastes.",
+      "section": "s17",
+      "page": 24,
+      "refs": []
+    },
+    {
+      "type": "equation",
+      "text": "",
+      "image": "eq-4.png",
+      "width": 900,
+      "height": 165,
+      "section": "s17",
+      "page": 24
+    },
+    {
+      "type": "paragraph",
+      "text": "Step 1. Because the outside option enters every denominator, the share mapping s(δ) is strictly increasing in each δ_j and satisfies the connected-substitutes condition of Berry and Haile (2014). It follows that s(δ) is injective, so δ is identified from observed shares. Note that this step does not require knowledge of W_i, which is absorbed into the denominator.",
+      "section": "s17",
+      "page": 24,
+      "refs": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Step 2. Conditional on δ, variation in the deal calendar that is independent of ξ, guaranteed by the lottery described in Section 4.1, shifts E[Δp_j] holding prices fixed. Completeness of the instruments then implies that the marginal distribution of γ_i is identified; the joint distribution of (α_i, γ_i) follows by the same argument applied to the cost shifters, as in Table 1. This completes the proof.",
+      "section": "s17",
+      "page": 24,
+      "refs": [
+        "tab-1"
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "id": "fig-1",
+      "kind": "figure",
+      "number": "1",
+      "label": "Figure 1",
+      "caption": "Estimated versus true own-price elasticities in 400 simulated markets. Circles show the neural estimator and crosses a static BLP model; the shaded region is a 95% bootstrap confidence band for the neural estimator, and the dashed line is the 45-degree line.",
+      "page": 4,
+      "image": "fig-1.png",
+      "width": 1500,
+      "height": 1000,
+      "first_ref_block": 5
+    },
+    {
+      "id": "fig-2",
+      "kind": "figure",
+      "number": "2",
+      "label": "Figure 2",
+      "caption": "Counterfactual pricing policies. Panel (a) plots aggregate demand for a representative bestseller under the baseline, no-deal, and hidden-calendar policies; panel (b) reports percentage changes in consumer surplus, publisher profit, and total welfare relative to the baseline.",
+      "page": 17,
+      "image": "fig-2.png",
+      "width": 1600,
+      "height": 740,
+      "first_ref_block": 90
+    },
+    {
+      "id": "fig-3",
+      "kind": "figure",
+      "number": "3",
+      "label": "Figure 3",
+      "caption": "Estimated markups and the share of strategic consumers. Each point is the mean within one of 50 equal-sized bins of titles; the solid line is the OLS fit (slope −0.42, standard error 0.07).",
+      "page": 20,
+      "image": "fig-3.png",
+      "width": 1400,
+      "height": 960,
+      "first_ref_block": 105
+    },
+    {
+      "id": "tab-1",
+      "kind": "table",
+      "number": "1",
+      "label": "Table 1",
+      "caption": "Demand estimates. Columns (1)–(2) are logit models estimated by OLS and 2SLS, column (3) is BLP with normal random coefficients, and column (4) is the neural estimator. Standard errors clustered by title in parentheses; * p < 0.10, ** p < 0.05, *** p < 0.01.",
+      "page": 14,
+      "image": "tab-1.png",
+      "width": 1443,
+      "height": 1029,
+      "first_ref_block": 77
+    },
+    {
+      "id": "tab-2",
+      "kind": "table",
+      "number": "2",
+      "label": "Table 2",
+      "caption": "Robustness of the neural estimator. Column (1) drops Hausman-style instruments, column (2) estimates on a random half of markets and evaluates fit on the other half, and column (3) excludes holiday weeks. Standard errors in parentheses.",
+      "page": 19,
+      "image": "tab-2.png",
+      "width": 1364,
+      "height": 752,
+      "first_ref_block": 100
+    }
+  ]
+}
