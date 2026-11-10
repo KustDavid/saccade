@@ -2,7 +2,9 @@
 
 It runs entirely on your own computer. Nothing you read is uploaded anywhere.
 
-![The reader: one word at a time on the left, the document's figures in a side panel](docs/screenshot.jpg)
+**Demo example** (the paper shown is made up; its text, authors and figures are invented):
+
+![The reader: one word at a time on the left, the made-up demo paper's figures in a side panel](docs/screenshot.jpg)
 
 It works with any PDF that has a text layer. I mainly use it for research papers, so that is what
 the conversion is tuned for: two-column layouts, numbered sections, figure and table captions,
