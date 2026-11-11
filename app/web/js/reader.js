@@ -348,10 +348,16 @@ class Reader {
     if (it.kind === 'word') {
       st.classList.remove('has-card');
       this.cardKey = '';
-      const [a, b, c] = splitAtOrp(frameText(this.stream, p.frame));
-      this.el.pre.textContent = a;
-      this.el.orp.textContent = b;
-      this.el.post.textContent = c;
+      if (it.img) {   // inline math from a web book: the picture takes the pivot letter's place
+        this.el.pre.textContent = it.img.pre;
+        this.el.orp.replaceChildren(this.inlineImg(it.img));
+        this.el.post.textContent = it.img.post;
+      } else {
+        const [a, b, c] = splitAtOrp(frameText(this.stream, p.frame));
+        this.el.pre.textContent = a;
+        this.el.orp.textContent = b;
+        this.el.post.textContent = c;
+      }
       this.positionWord();
       return;
     }
@@ -370,8 +376,8 @@ class Reader {
     if (it.kind === 'equation') {
       const blk = this.stream.blocks[it.b];
       return this.showCard(`e${p.index}:${held}`, () => `
-        <div class="card equation">
-          ${blk.image ? `<img src="${esc(api.assetUrl(this.id, blk.image))}" alt="Equation">` : `<code>${esc(blk.text)}</code>`}
+        <div class="card equation${blk.role ? ' web' : ''}">
+          ${blk.image ? `<img src="${esc(api.assetUrl(this.id, blk.image))}" alt="${blk.role === 'code' ? 'Code listing' : 'Equation'}"${this.eqStyle(blk)}>` : `<code>${esc(blk.text)}</code>`}
           <div class="hint">${held ? '<kbd>Space</kbd> to continue' : ''}</div>
         </div>`);
     }
@@ -402,7 +408,7 @@ class Reader {
   coverHtml() {
     const p = this.paper;
     const mins = formatDuration(remainingMs(this.stream, 0, settings.wpm));
-    const meta = [p.year, p.page_count ? `${p.page_count} pages` : '', p.num_figures ? `${p.num_figures} figures` : '', p.num_tables ? `${p.num_tables} tables` : '']
+    const meta = [p.year, p.page_count ? `${p.page_count} ${p.source_url ? 'web pages' : 'pages'}` : '', p.num_figures ? `${p.num_figures} figures` : '', p.num_tables ? `${p.num_tables} tables` : '']
       .filter(Boolean).join(' · ');
     return `
       <div class="card cover">
@@ -427,6 +433,35 @@ class Reader {
         </div>
         ${skippedExist ? '<p class="end-skip">References and appendix were skipped. <button class="linklike" data-act="read-skipped">Read them now</button></p>' : ''}
       </div>`;
+  }
+
+  inlineImg(img) {
+    const el = document.createElement('img');
+    el.className = 'mi';
+    el.src = api.assetUrl(this.id, img.image);
+    el.alt = el.title = img.alt || '';
+    el.style.cssText = `width:${img.w}em;height:${img.h}em;vertical-align:${-(img.d || 0)}em`;
+    return el;
+  }
+
+  // Put a word item into its <span>: plain text, or punctuation around an inline picture.
+  fillWord(sp, item) {
+    if (item.img) sp.append(item.img.pre, this.inlineImg(item.img), item.img.post);
+    else sp.textContent = item.text;
+  }
+
+  // Web books have chapters where PDFs have pages.
+  get isWeb() { return Array.isArray(this.paper?.page_urls); }
+  get pageWord() { return this.isWeb ? 'ch.' : 'p.'; }
+  sourceUrl(page) {
+    if (!this.isWeb) return api.pdfUrl(this.id, page);
+    return this.paper.page_urls[(page || 1) - 1] || this.paper.source_url || '#';
+  }
+
+  // Equations and code listings from web books are shown at their natural size (they were captured at 2x);
+  // a listing taller than the stage scrolls inside its card.
+  eqStyle(blk) {
+    return blk.role && blk.width ? ` style="width:min(100%,${Math.round(blk.width / 2)}px)"` : '';
   }
 
   positionWord() {
@@ -471,7 +506,7 @@ class Reader {
           const sp = document.createElement('span');
           sp.className = 'w';
           sp.dataset.i = i;
-          sp.textContent = s.items[i].text;
+          this.fillWord(sp, s.items[i]);
           frag.append(sp, ' ');
         }
         box.append(frag);
@@ -488,7 +523,7 @@ class Reader {
             const sp = document.createElement('span');
             sp.className = 'w';
             sp.dataset.i = i;
-            sp.textContent = s.items[i].text;
+            this.fillWord(sp, s.items[i]);
             box.append(sp, ' ');
           }
         } else if (it.kind === 'heading') {
@@ -590,10 +625,11 @@ class Reader {
     const page = s.blocks[it?.b]?.page;
     if (page !== this.pdfPage) {
       this.pdfPage = page;
-      this.el.pdf.href = api.pdfUrl(this.id, page);
-      this.el.pdfPage.textContent = page ? `p.${page}` : '';
-      this.el.pdf.title = `Open the PDF${page ? ` at page ${page}` : ''} (P)`;
-      this.markNotes(true);
+      this.el.pdf.href = this.sourceUrl(page);
+      this.el.pdfPage.textContent = page ? `${this.pageWord}${page}` : '';
+      this.el.pdf.title = this.isWeb ? 'Open this chapter on the web (P)' : `Open the PDF${page ? ` at page ${page}` : ''} (P)`;
+      if (this.isWeb) this.renderFigures();   // the side panel follows the chapter being read
+      else this.markNotes(true);
     }
   }
 
@@ -622,19 +658,23 @@ class Reader {
   renderFigures() {
     const assets = this.paper.assets || [];
     const notes = this.paper.footnotes || [];
-    const of = (kind) => assets.filter((a) => (a.kind || 'figure') === kind);
-    this.el.figTabs.innerHTML = [['figure', 'Figures', of('figure').length, 'F'], ['table', 'Tables', of('table').length, 'T'], ['note', 'Footnotes', notes.length, 'Z'], ['mark', 'Highlights', (this.annots || []).length, 'H to add']]
+    // a web book has hundreds of figures: show the ones of the chapter being read
+    const here = (x) => !this.isWeb || x.page === this.pdfPage;
+    const where = this.isWeb ? 'in this chapter' : 'were found in this paper';
+    const of = (kind) => assets.filter((a) => (a.kind || 'figure') === kind && here(a));
+    const notesHere = notes.filter(here);
+    this.el.figTabs.innerHTML = [['figure', 'Figures', of('figure').length, 'F'], ['table', 'Tables', of('table').length, 'T'], ['note', 'Footnotes', notesHere.length, 'Z'], ['mark', 'Highlights', (this.annots || []).length, 'H to add']]
       .map(([v, l, n, k]) => `<button data-figtab="${v}" title="${l} (${k})">${l} ${n}</button>`).join('');
     const col = (kind, title) => `<div class="fig-col" data-kind="${kind}"><h3>${title}</h3>` + (of(kind).map((a) => `
         <button class="fig-card" data-asset="${esc(a.id)}">
           <span class="fig-thumb"><img loading="lazy" src="${esc(api.assetUrl(this.id, a.image))}" alt="${esc(a.label)}"></span>
-          <span class="fig-meta"><b>${esc(a.label)}</b>${a.page ? `<span>p. ${a.page}</span>` : ''}</span>
+          <span class="fig-meta"><b>${esc(a.label)}</b>${a.page ? `<span>${this.pageWord} ${a.page}</span>` : ''}</span>
           <span class="fig-cap">${esc(a.caption || '')}</span>
-        </button>`).join('') || `<p class="empty">No ${title.toLowerCase()} were found in this paper.</p>`) + '</div>';
-    const noteCol = `<div class="fig-col" data-kind="note"><h3>Footnotes</h3>` + (notes.map((n) => `
+        </button>`).join('') || `<p class="empty">No ${title.toLowerCase()} ${where}.</p>`) + '</div>';
+    const noteCol = `<div class="fig-col" data-kind="note"><h3>Footnotes</h3>` + (notesHere.map((n) => `
         <div class="note" data-page="${n.page ?? ''}"><span class="note-mark">${esc(String(n.marker ?? ''))}</span>
-          <p>${esc(n.text || '')}${n.page ? ` <span class="note-page">p. ${n.page}</span>` : ''}</p></div>`).join('')
-      || '<p class="empty">No footnotes were found in this paper.</p>') + '</div>';
+          <p>${esc(n.text || '')}${n.page ? ` <span class="note-page">${this.pageWord} ${n.page}</span>` : ''}</p></div>`).join('')
+      || `<p class="empty">No footnotes ${where}.</p>`) + '</div>';
     this.el.figList.innerHTML = col('figure', 'Figures') + col('table', 'Tables') + noteCol
       + '<div class="fig-col" data-kind="mark"></div>';
     this.renderMarks();
@@ -882,7 +922,7 @@ class Reader {
       <div class="mark" data-ann="${esc(a.id)}" title="Jump to this sentence">
         <p class="mark-quote">${esc(a.text)}</p>
         ${a.note ? `<p class="mark-note">${esc(a.note)}</p>` : ''}
-        <div class="mark-meta">${a.page ? `<span>p. ${a.page}</span>` : ''}${a.in_pdf === false ? '<span>not in PDF</span>' : ''}
+        <div class="mark-meta">${a.page ? `<span>${this.pageWord} ${a.page}</span>` : ''}${a.in_pdf === false ? '<span>not in PDF</span>' : ''}
           <button class="link" data-act2="edit-note">${a.note ? 'Edit note' : 'Add note'}</button></div>
       </div>`).join('') || '<p class="empty">Press H while reading to highlight the current sentence, N to add a note to it.</p>');
   }
@@ -910,8 +950,9 @@ class Reader {
         frag.append(el);
       } else if (it.kind === 'equation') {
         const blk = s.blocks[it.b];
-        const el = h('div', { class: 'ft-eq', 'data-i': i },
-          blk.image ? h('img', { src: api.assetUrl(this.id, blk.image), alt: 'Equation', loading: 'lazy' }) : h('code', {}, blk.text));
+        const img = blk.image ? h('img', { src: api.assetUrl(this.id, blk.image), alt: blk.role === 'code' ? 'Code listing' : 'Equation', loading: 'lazy' }) : null;
+        if (img && blk.role && blk.height) img.style.maxHeight = `${Math.round(blk.height / 2)}px`;
+        const el = h('div', { class: 'ft-eq', 'data-i': i }, img || h('code', {}, blk.text));
         this.ftEls[i++] = el;
         frag.append(el);
       } else if (it.kind === 'asset') {
@@ -929,7 +970,7 @@ class Reader {
           const sp = document.createElement('span');
           sp.className = 'w';
           sp.dataset.i = i;
-          sp.textContent = w.text;
+          this.fillWord(sp, w);
           if (w.mentions) {
             sp.classList.add('ref');
             sp.dataset.asset = w.mentions[0];
@@ -1205,8 +1246,9 @@ class Reader {
     box.querySelector('.lb-note').textContent = lb.note || '';
     box.querySelector('.lb-caption').innerHTML = `<b>${esc(a.label)}.</b> ${esc(a.caption || '')}`;
     const pdf = box.querySelector('.lb-pdf');
-    pdf.href = api.pdfUrl(this.id, a.page);
-    pdf.querySelector('span').textContent = a.page ? `p.${a.page}` : '';
+    pdf.href = this.sourceUrl(a.page);
+    pdf.title = this.isWeb ? 'Open this chapter on the web' : 'Open this page of the PDF';
+    pdf.querySelector('span').textContent = a.page ? `${this.pageWord}${a.page}` : '';
     box.querySelector('[data-lb="mention"]').hidden = !(a.id in this.stream.mentionIndex);
     box.querySelectorAll('.lb-nav').forEach((b) => { b.hidden = assets.length < 2; });
     const img = box.querySelector('.lb-img');

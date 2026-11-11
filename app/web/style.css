@@ -258,6 +258,8 @@ kbd {
 .card .h-meta { margin-top: 10px; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); }
 
 .card.equation img { display: block; margin: 0 auto; max-width: 100%; max-height: calc(var(--stage-size) * 2.2); mix-blend-mode: multiply; }
+.card.equation.web { max-height: 64vh; overflow-y: auto; }
+.card.equation.web img { max-height: none; height: auto; }
 .card.equation code { font-family: var(--font-mono); font-size: 1.1rem; }
 
 .card.asset {
@@ -341,6 +343,11 @@ h3.ft-h { font-size: 1.15rem; }
 .ft-fig { margin: 1.6em 0; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; cursor: zoom-in; }
 .ft-fig img { display: block; width: 100%; height: auto; background: #fff; border-radius: 6px; }
 .ft-fig figcaption { font-size: 0.92rem; line-height: 1.5; color: var(--muted); margin-top: 10px; font-family: var(--font-sans); }
+
+/* inline math from web books: black glyphs on a transparent background, sized in em by the reader */
+.mi { display: inline-block; max-width: 100%; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mi { filter: invert(1); } }
+:root[data-theme="dark"] .mi { filter: invert(1); }
 
 /* equations are black-on-white crops: blend them into the page */
 @media (prefers-color-scheme: dark) {

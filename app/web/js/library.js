@@ -52,7 +52,7 @@ export function mountLibrary(root, ctx) {
     const minutes = estimateMinutes(p.word_count, settings.wpm, assets);
     const pct = Math.max(0, Math.min(100, Number(p.progress?.percent) || 0));
     const meta = ready ? [
-      p.page_count ? `${p.page_count} pages` : '',
+      p.page_count ? `${p.page_count} ${p.source_url ? 'web pages' : 'pages'}` : '',
       minutes ? `${formatDuration(minutes * 60000)} at ${settings.wpm} wpm` : '',
       p.num_figures ? `${p.num_figures} figure${p.num_figures === 1 ? '' : 's'}` : '',
       p.num_tables ? `${p.num_tables} table${p.num_tables === 1 ? '' : 's'}` : '',

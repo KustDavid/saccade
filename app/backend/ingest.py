@@ -2,6 +2,7 @@
 
 CLI:
     uv run python -m backend.ingest path/to/paper.pdf [more.pdf ...]   # add to library + convert
+    uv run python -m backend.ingest https://a-quarto-book.example/     # import a web book (see webbook.py)
     uv run python -m backend.ingest --reingest <id>                     # re-run conversion
     uv run python -m backend.ingest --reingest-all
     uv run python -m backend.ingest --dir papers/library/<id>           # (used by the server)
@@ -20,7 +21,7 @@ from pathlib import Path
 
 import pymupdf
 
-from . import config, library
+from . import config, library, webbook
 from .extract import union as union_box
 from .extract import PageData, analyse_columns, body_font_size, extract_page, harmonise_columns
 from .flow import assign_levels, build_flow, build_sections, split_abstract
@@ -399,9 +400,12 @@ def ingest_dir(d: Path) -> dict:
     work = d / ".assets.tmp"
     shutil.rmtree(work, ignore_errors=True)
     try:
-        if not pdf.exists():
+        if summary.get("source_url"):
+            paper = webbook.convert(summary["source_url"], work, lang=summary.get("web_lang") or "stata")
+        elif not pdf.exists():
             raise IngestError("original.pdf is missing from the paper folder.")
-        paper = convert(pdf, work, summary.get("source_filename") or pdf.name)
+        else:
+            paper = convert(pdf, work, summary.get("source_filename") or pdf.name)
         if not d.exists():  # deleted while we were working
             shutil.rmtree(work, ignore_errors=True)
             return summary
@@ -429,8 +433,9 @@ def ingest_dir(d: Path) -> dict:
             library.atomic_write_json(d / "summary.json", summary)
     except Exception as e:
         shutil.rmtree(work, ignore_errors=True)
-        msg = str(e) if isinstance(e, IngestError) else f"{type(e).__name__}: {e}"
-        if isinstance(e, IngestError):
+        expected = isinstance(e, (IngestError, webbook.WebBookError))
+        msg = str(e) if expected else f"{type(e).__name__}: {e}"
+        if expected:
             log.error("ingest of %s failed: %s", pid, msg)
         else:
             log.error("ingest of %s failed: %s\n%s", pid, msg, traceback.format_exc())
@@ -459,7 +464,10 @@ def _print_summary(s: dict) -> None:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m backend.ingest", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("pdfs", nargs="*", help="PDF files to add to the library and convert")
+    ap.add_argument("pdfs", nargs="*", metavar="PDF_OR_URL",
+                    help="PDF files, or the address of a Quarto book site, to add to the library and convert")
+    ap.add_argument("--lang", default=None, metavar="LANGUAGE",
+                    help="web books: which tab of multi-language code listings to keep (default: stata)")
     ap.add_argument("--reingest", metavar="ID", action="append", default=[], help="re-run conversion for a paper id")
     ap.add_argument("--reingest-all", action="store_true", help="re-run conversion for every paper in the library")
     ap.add_argument("--dir", help=argparse.SUPPRESS)
@@ -486,6 +494,12 @@ def main(argv: list[str] | None = None) -> int:
         _print_summary(s)
         rc |= 0 if s.get("status") == "ready" else 1
     for p in args.pdfs:
+        if re.match(r"https?://", p):
+            summary, _created = library.add_web(p, args.lang)
+            s = ingest_dir(config.LIBRARY_DIR / summary["id"])
+            _print_summary(s)
+            rc |= 0 if s.get("status") == "ready" else 1
+            continue
         path = Path(p).expanduser()
         if not path.is_file():
             print(f"not a file: {p}", file=sys.stderr)

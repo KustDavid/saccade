@@ -28,6 +28,7 @@ export const TIMING = Object.freeze({
   rampStart: 2.0,      // first frame after resuming is shown this many times longer
   rampFrames: 8,       // ...easing back to normal speed over this many frames
   maxChunkChars: 24,   // multi-word flashes never exceed this many characters
+  inlineImage: 1.5,    // a word that is a picture (inline math from a web book)
 });
 
 const ALNUM = /[\p{L}\p{N}]/u;
@@ -43,6 +44,9 @@ const ABBREV_NEVER = new Set([
 ]);
 // A sentence end only when the next word starts with a capital letter.
 const ABBREV_MAYBE = new Set(['etc.', 'al.', 'inc.', 'ltd.', 'co.', 'corp.', 'u.s.', 'u.k.', 'e.u.']);
+
+// Paragraph text marks an inline picture as \uE000<key>\uE001; block.images[key] describes it.
+const INLINE_IMAGE = /\uE000([^\uE000\uE001]*)\uE001/;
 
 const EM_DASH_JOIN = /(?<=[\p{L}\p{N})\]”’"'.,]—)(?=[\p{L}\p{N}(\[“‘"'])/u;
 
@@ -219,7 +223,18 @@ export function buildStream(paper, opts = {}) {
     } else {
       const words = tokenize(blk.text);
       if (!words.length) return;
-      words.forEach((t, w) => items.push({ kind: 'word', b, w, text: t, words: 1, section }));
+      words.forEach((t, w) => {
+        const item = { kind: 'word', b, w, text: t, words: 1, section };
+        const m = INLINE_IMAGE.exec(t);
+        if (m) {
+          const info = blk.images?.[m[1]];
+          const pre = t.slice(0, m.index);
+          const post = t.slice(m.index + m[0].length);
+          if (info) { item.img = { ...info, pre, post }; item.text = `${pre}[math]${post}`; }
+          else item.text = pre + m[1] + post;
+        }
+        items.push(item);
+      });
       const refs = [...new Set(blk.refs || [])].map((id) => assets.get(id)).filter(Boolean);
       for (const [w, id] of findMentions(words, refs)) {
         const it = items[start + w];
@@ -248,7 +263,7 @@ export function buildStream(paper, opts = {}) {
       it.sentStart = !prev || prev.kind !== 'word' || prev.b !== it.b || prev.sentEnd;
       it.sentEnd = it.paraEnd || isSentenceEnd(it.text, nextInPara?.text);
       it.pause = it.sentEnd || !!clauseMark(it.text);
-      it.factor = wordFactor(it.text, { sentenceEnd: it.sentEnd, paraEnd: it.paraEnd });
+      it.factor = wordFactor(it.text, { sentenceEnd: it.sentEnd, paraEnd: it.paraEnd }) + (it.img ? T.inlineImage : 0);
       it.fixedMs = 0;
       sum += it.factor;
       count++;
@@ -324,12 +339,12 @@ export function frameAt(stream, index, chunk = 1) {
   const start = Math.max(0, Math.min(n - 1, index | 0));
   const first = items[start];
   let end = start + 1;
-  if (first.kind === 'word' && chunk > 1) {
+  if (first.kind === 'word' && chunk > 1 && !first.img) {
     let len = Array.from(first.text).length;
     while (end < n && end - start < chunk) {
       const prev = items[end - 1];
       const it = items[end];
-      if (it.kind !== 'word' || it.b !== first.b || prev.pause || it.sentStart) break;
+      if (it.kind !== 'word' || it.b !== first.b || prev.pause || it.sentStart || it.img) break;
       const add = Array.from(it.text).length + 1;
       if (len + add > TIMING.maxChunkChars) break;
       len += add;

@@ -3,7 +3,9 @@ name = "reading-tool"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "beautifulsoup4>=4.15.0",
     "fastapi>=0.162.3",
+    "playwright>=1.65.0",
     "pymupdf>=2.1",
     "python-multipart>=0.0.33",
     "uvicorn>=0.54.0",

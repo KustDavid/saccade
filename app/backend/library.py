@@ -27,7 +27,7 @@ _add_lock = threading.Lock()      # serialise "is this hash already here?" + mkd
 DEFAULT_PROGRESS = {"block": 0, "word": 0, "wpm": 350, "percent": 0.0, "updated": "1970-01-01T00:00:00Z"}
 SUMMARY_KEYS = (
     "id", "title", "authors", "year", "source_filename", "added", "status", "error",
-    "page_count", "word_count", "num_figures", "num_tables",
+    "page_count", "word_count", "num_figures", "num_tables", "source_url",
 )
 
 
@@ -196,6 +196,43 @@ def add_pdf(src: Path, source_filename: str, move: bool = False) -> tuple[dict, 
             "num_tables": 0,
             "sha256": sha,
         }
+        write_summary(pid, summary)
+    return summary, True
+
+
+def add_web(url: str, lang: str | None = None) -> tuple[dict, bool]:
+    """Put a web book (see webbook.py) into the library. Returns (summary, created). Same address ->
+    existing entry, so importing again refreshes it in place."""
+    from urllib.parse import urlsplit
+
+    config.ensure_dirs()
+    parts = urlsplit(url)
+    if parts.scheme not in ("http", "https") or not parts.netloc:
+        raise ValueError(f"Not a web address: {url}")
+    sha = hashlib.sha256(url.encode()).hexdigest()
+    with _add_lock:
+        for s in list_summaries():
+            if s.get("source_url") == url:
+                if lang and s.get("web_lang") != lang:
+                    s["web_lang"] = lang
+                    write_summary(s["id"], s)
+                return s, False
+        name = (parts.netloc + parts.path).strip("/")
+        pid = make_paper_id([], None, name, sha, fallback=name)
+        d = config.LIBRARY_DIR / pid
+        n = 2
+        while d.exists():
+            d = config.LIBRARY_DIR / f"{pid}-{n}"
+            n += 1
+        pid = d.name
+        d.mkdir(parents=True)
+        summary = {
+            "id": pid, "title": name, "authors": [], "year": None, "source_filename": name,
+            "added": now_iso(), "status": "processing", "error": None, "page_count": 0, "word_count": 0,
+            "num_figures": 0, "num_tables": 0, "sha256": sha, "source_url": url,
+        }
+        if lang:
+            summary["web_lang"] = lang
         write_summary(pid, summary)
     return summary, True
 

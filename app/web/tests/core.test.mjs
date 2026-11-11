@@ -427,3 +427,45 @@ test('mock fixture builds a sane stream', { skip: !existsSync(fixture) && 'no we
   const rows = sectionRanges(s);
   assert.equal(rows.length, paper.sections.length);
 });
+
+// ---------- inline images (math from web books) ----------
+
+function mathPaper() {
+  return {
+    sections: [{ id: 's1', title: 'One', level: 1, first_block: 0, skip_default: false }],
+    blocks: [
+      {
+        type: 'paragraph', section: 's1', page: 1,
+        text: 'The ratio (p1-4), is large and gone too.',
+        images: { 'p1-4': { image: 'p1-4.png', w: 2.5, h: 1.8, d: 0.6, alt: '\\frac{a}{b}' } },
+      },
+    ],
+  };
+}
+
+test('an inline image is one word that keeps its surrounding punctuation', () => {
+  const s = buildStream(mathPaper());
+  const it = s.items[2];
+  assert.deepEqual(it.img, { image: 'p1-4.png', w: 2.5, h: 1.8, d: 0.6, alt: '\\frac{a}{b}', pre: '(', post: '),' });
+  assert.equal(it.text, '([math]),');
+  assert.equal(clauseMark(it.text), 'comma');
+  assert.equal(s.items.length, 8);
+});
+
+test('an inline image whose picture is missing leaves no marker characters behind', () => {
+  const s = buildStream(mathPaper());
+  const it = s.items[6];
+  assert.equal(it.img, undefined);
+  assert.equal(it.text, 'gone');
+});
+
+test('an inline image is shown longer than a plain word', () => {
+  const s = buildStream(mathPaper());
+  assert.ok(s.items[2].factor > wordFactor('(x),') + 1);
+});
+
+test('an inline image is never flashed together with other words', () => {
+  const s = buildStream(mathPaper());
+  assert.deepEqual(frameAt(s, 0, 3), { start: 0, end: 2 });   // "The ratio" stops before the image
+  assert.deepEqual(frameAt(s, 2, 3), { start: 2, end: 3 });   // the image alone
+});

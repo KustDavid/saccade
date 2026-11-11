@@ -37,6 +37,10 @@ def _path(pid: str) -> Path:
     return library.paper_dir(pid) / "annotations.json"
 
 
+def _has_pdf(pid: str) -> bool:
+    return (library.paper_dir(pid) / "original.pdf").exists()
+
+
 def list_annotations(pid: str) -> list[dict]:
     data = library.read_json(_path(pid), default=[])
     return data if isinstance(data, list) else []
@@ -45,6 +49,8 @@ def list_annotations(pid: str) -> list[dict]:
 def _save(pid: str, items: list[dict]) -> None:
     items.sort(key=lambda a: (a.get("block", 0), a.get("start", 0)))
     library.atomic_write_json(_path(pid), items)
+    if not _has_pdf(pid):   # a web book: highlights live in the reader only
+        return
     try:
         matched = build_pdf(pid, items)
         for a in items:
@@ -66,8 +72,9 @@ def create(pid: str, block: int, start: int, end: int, text: str, page: int | No
     a = {
         "id": uuid.uuid4().hex[:12], "block": block, "start": start, "end": end, "text": text,
         "page": page, "note": note or "", "created": library.now_iso(), "updated": library.now_iso(),
-        "in_pdf": False,
     }
+    if _has_pdf(pid):
+        a["in_pdf"] = False
     items.append(a)
     _save(pid, items)
     return a
