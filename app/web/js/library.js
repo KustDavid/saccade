@@ -12,11 +12,11 @@ export function mountLibrary(root, ctx) {
   let pollTimer = null;
   let destroyed = false;
 
-  document.title = 'Reading tool — Library';
+  document.title = 'Saccade — Library';
   root.innerHTML = `
     <div class="library">
       <header class="lib-head">
-        <div class="brand"><span class="brand-dot" aria-hidden="true"></span>Reading tool
+        <div class="brand"><span class="brand-dot" aria-hidden="true"></span>Saccade
           ${isMock ? '<span class="tag" title="Loaded with ?mock=1 — sample data, nothing is saved to the server">demo data</span>' : ''}
         </div>
         <div class="lib-actions">
@@ -96,7 +96,7 @@ export function mountLibrary(root, ctx) {
       list.innerHTML = `
         <li class="lib-empty problem">
           <h2>${offline ? 'The reading server isn’t running' : 'Something went wrong'}</h2>
-          <p>${offline ? 'Start it by double-clicking <code>start.command</code> in the reading_tool folder. This page reconnects by itself.' : esc(failure.message)}</p>
+          <p>${offline ? 'Start it by double-clicking <code>start.command</code> in the project folder. This page reconnects by itself.' : esc(failure.message)}</p>
           ${isMock ? '' : '<p><a href="?mock=1#/">Or look around with a demo paper →</a></p>'}
         </li>`;
       return;

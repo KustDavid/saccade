@@ -43,7 +43,7 @@ def test_upload_read_progress_delete(client):
     assert client.get("/api/papers").json() == []
     # web/ missing -> placeholder page, not a crash
     r = client.get("/")
-    assert r.status_code == 200 and "Reading tool" in r.text
+    assert r.status_code == 200 and "Saccade" in r.text and "Reading tool" not in r.text
 
     with open(SAMPLE, "rb") as f:
         r = client.post("/api/papers", files={"file": ("my  paper (v2).pdf", f, "application/pdf")})

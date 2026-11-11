@@ -95,7 +95,7 @@ class Reader {
   // ---------------------------------------------------------------- DOM
 
   build() {
-    document.title = 'Reading tool';
+    document.title = 'Saccade';
     this.root.innerHTML = `
       <div class="reader" data-state="loading">
         <header class="r-top">
@@ -254,7 +254,7 @@ class Reader {
   setup(paper, progress) {
     this.paper = paper;
     this.el.message.hidden = true;
-    document.title = `${paper.title || 'Paper'} — Reading tool`;
+    document.title = `${paper.title || 'Paper'} — Saccade`;
     this.el.title.textContent = paper.title || paper.source_filename || '';
     this.el.outlineSub.textContent = [authorsLine(paper.authors, 2), paper.year].filter(Boolean).join(' · ');
     const nAssets = (paper.assets || []).length;

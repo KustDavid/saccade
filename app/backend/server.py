@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI):
         worker.stop()
 
 
-app = FastAPI(title="Reading tool", lifespan=lifespan)
+app = FastAPI(title="Saccade", lifespan=lifespan)
 
 
 # ---------------------------------------------------------------------------
@@ -269,10 +269,10 @@ def api_404(rest: str):
 # static frontend (web/ may be empty or missing while it is being built)
 # ---------------------------------------------------------------------------
 
-PLACEHOLDER = """<!doctype html><html><head><meta charset="utf-8"><title>Reading tool</title>
+PLACEHOLDER = """<!doctype html><html><head><meta charset="utf-8"><title>Saccade</title>
 <style>body{font:16px/1.5 -apple-system,system-ui,sans-serif;max-width:40rem;margin:4rem auto;padding:0 1rem;color:#222}
 code{background:#f2f2f2;padding:.1rem .3rem;border-radius:4px}</style></head><body>
-<h1>Reading tool</h1><p>The server is running, but the web app (<code>web/index.html</code>) is not there yet.</p>
+<h1>Saccade</h1><p>The server is running, but the web app (<code>web/index.html</code>) is not there yet.</p>
 <p>The API is live at <a href="/api/papers">/api/papers</a>. Drop PDFs into <code>papers/inbox/</code> to add them.</p>
 </body></html>"""
 

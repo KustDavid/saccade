@@ -239,7 +239,7 @@ def build_pdf(pid: str, items: list[dict] | None = None) -> dict[str, bool]:
                 annot = page.add_highlight_annot(quads=[r.quad for r in rects[p]])
                 annot.set_colors(stroke=YELLOW)
                 # the note is the comment of the first highlight piece only
-                annot.set_info(title="Reading tool", content=(a.get("note") or "") if first else "")
+                annot.set_info(title="Saccade", content=(a.get("note") or "") if first else "")
                 annot.update()
                 first = False
         tmp = d / "annotated.pdf.tmp"

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Double-click me (Finder) to start the reading tool and open it in your browser.
+# Double-click me (Finder) to start Saccade and open it in your browser.
 # Close this Terminal window (or press Ctrl-C) to stop the server.
 
 cd "$(dirname "$0")" || exit 1
@@ -22,7 +22,7 @@ fi
 
 # Already running? Just open the browser.
 if curl -s -o /dev/null --max-time 2 "${URL}/api/papers"; then
-  echo "Reading tool is already running at ${URL}"
+  echo "Saccade is already running at ${URL}"
   open "${URL}"
   exit 0
 fi
@@ -41,7 +41,7 @@ mkdir -p papers/inbox papers/library
   echo "Server did not come up on ${URL} - see the messages above."
 ) &
 
-echo "Starting reading tool on ${URL}"
+echo "Starting Saccade on ${URL}"
 echo "Drop PDFs into: $(pwd)/papers/inbox"
 echo "(Close this window or press Ctrl-C to stop.)"
 cd app || exit 1
