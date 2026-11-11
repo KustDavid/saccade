@@ -1,4 +1,6 @@
-# A speed reader for PDFs
+# Saccade
+
+A speed reader for PDFs.
 
 **Demo example** (the paper shown is made up; its text, authors and figures are invented):
 
@@ -29,10 +31,10 @@ You need a Mac and [uv](https://docs.astral.sh/uv/) (`brew install uv`). Everyth
 installed automatically the first time, which takes about a minute.
 
 ```sh
-git clone https://github.com/KustDavid/reading_tool.git
+git clone https://github.com/KustDavid/saccade_rsvp_reader.git
 ```
 
-Then double-click **`start.command`** in the `reading_tool` folder. A Terminal window opens and the
+Then double-click **`start.command`** in the `saccade_rsvp_reader` folder. A Terminal window opens and the
 app appears in your browser at <http://127.0.0.1:8377>. Close the Terminal window to stop it.
 
 To look around before adding anything, open <http://127.0.0.1:8377/?mock=1> — a made-up demo paper.
@@ -40,7 +42,7 @@ To look around before adding anything, open <http://127.0.0.1:8377/?mock=1> — 
 From a terminal instead:
 
 ```sh
-cd reading_tool/app
+cd saccade_rsvp_reader/app
 uv run python -m backend.server
 ```
 
@@ -49,6 +51,27 @@ uv run python -m backend.server
 Either drag a PDF onto the app's library page, or put it into **`papers/inbox/`**. Conversion
 starts by itself and takes a few seconds to a minute depending on length. Adding the same PDF twice
 does nothing.
+
+### Adding a web book
+
+A book published as a [Quarto](https://quarto.org/docs/books/) website can be imported straight from
+its address, as one library entry with its chapters and sections in the contents list:
+
+```sh
+cd saccade_rsvp_reader/app
+uv run python -m backend.ingest https://example.org/some-quarto-book/
+```
+
+This needs Google Chrome, which is used behind the scenes to draw tables, equations and code listings
+as pictures. Each page of the site is downloaded once, with a pause between requests, and kept under
+`papers/.webcache/`; running the command again only re-checks for changes. A few things differ from PDFs:
+
+- Simple inline math is spelled with plain characters (β₁); anything more involved is shown as a small
+  picture in place of a word.
+- Code listings stop the reader the way equations do. Where a listing has language tabs, the Stata
+  version is kept; pass `--lang r` or `--lang python` for another.
+- The side panel shows the figures, tables and footnotes of the chapter being read.
+- `P` opens the current chapter on the web. Highlights and notes are kept in the reader only.
 
 ## Reading
 
@@ -77,7 +100,7 @@ References, acknowledgements and appendices are skipped unless you turn them on 
 ## Where your files are
 
 ```
-reading_tool/
+saccade_rsvp_reader/
   start.command      double-click to start
   papers/
     inbox/           drop PDFs here
