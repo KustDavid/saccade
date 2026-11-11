@@ -31,10 +31,10 @@ You need a Mac and [uv](https://docs.astral.sh/uv/) (`brew install uv`). Everyth
 installed automatically the first time, which takes about a minute.
 
 ```sh
-git clone https://github.com/KustDavid/saccade_rsvp_reader.git
+git clone https://github.com/KustDavid/saccade.git
 ```
 
-Then double-click **`start.command`** in the `saccade_rsvp_reader` folder. A Terminal window opens and the
+Then double-click **`start.command`** in the `saccade` folder. A Terminal window opens and the
 app appears in your browser at <http://127.0.0.1:8377>. Close the Terminal window to stop it.
 
 To look around before adding anything, open <http://127.0.0.1:8377/?mock=1> — a made-up demo paper.
@@ -42,7 +42,7 @@ To look around before adding anything, open <http://127.0.0.1:8377/?mock=1> — 
 From a terminal instead:
 
 ```sh
-cd saccade_rsvp_reader/app
+cd saccade/app
 uv run python -m backend.server
 ```
 
@@ -58,7 +58,7 @@ A book published as a [Quarto](https://quarto.org/docs/books/) website can be im
 its address, as one library entry with its chapters and sections in the contents list:
 
 ```sh
-cd saccade_rsvp_reader/app
+cd saccade/app
 uv run python -m backend.ingest https://example.org/some-quarto-book/
 ```
 
@@ -100,7 +100,7 @@ References, acknowledgements and appendices are skipped unless you turn them on 
 ## Where your files are
 
 ```
-saccade_rsvp_reader/
+saccade/
   start.command      double-click to start
   papers/
     inbox/           drop PDFs here
